@@ -1,6 +1,6 @@
 import { useEffect, useState, type DragEvent, type MouseEvent, type ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { ArrowUp, Eye, EyeOff, File, FileSymlink, Folder, FolderPlus, FolderSymlink, House, Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowUp, Eye, EyeOff, File, FileSymlink, Folder, FolderPlus, FolderSymlink, House, Pencil, RefreshCw, Share, Trash2 } from "lucide-react";
 import { cn } from "@hostealo/ui/cn";
 
 import i18n from "../i18n";
@@ -38,6 +38,9 @@ function formatDate(seconds: number | null): string {
 
 type Dialog = { kind: "mkdir" } | { kind: "rename"; entry: SftpEntry } | { kind: "delete"; entries: SftpEntry[] } | null;
 
+/** Touch screens: rows react to taps and holds instead of clicks and double clicks. */
+const TOUCH = window.matchMedia("(hover: none)").matches;
+
 export interface FilePaneProps {
   side: PaneSide;
   title: ReactNode;
@@ -57,6 +60,8 @@ export interface FilePaneProps {
   onOpenFile: (entry: SftpEntry) => void;
   /** Sends the selection to the other side (upload or download). */
   transfer?: { label: string; icon: ReactNode; run: (entries: SftpEntry[]) => void };
+  /** The system share sheet for the selection (local files on iPhone and iPad). */
+  onShare?: (entries: SftpEntry[]) => void;
   /** Items dropped here from the other pane, into `dir`. */
   onReceive?: (drag: PaneDrag, dir: string) => void;
   showOwner?: boolean;
@@ -83,7 +88,22 @@ export function FilePane(props: FilePaneProps) {
   const visible = showHidden ? entries : entries.filter((e) => !e.name.startsWith("."));
   const selectedEntries = visible.filter((e) => selected.has(e.path));
 
-  const onRowClick = (entry: SftpEntry, event: MouseEvent) =>
+  const toggleSelected = (entry: SftpEntry) =>
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(entry.path)) next.delete(entry.path);
+      else next.add(entry.path);
+      return next;
+    });
+
+  const onRowClick = (entry: SftpEntry, event: MouseEvent) => {
+    // Fingers, as in the Files app: a folder opens, a file joins the selection (holding a row,
+    // folders included, selects it too: see onContextMenu below).
+    if (TOUCH) {
+      if (entry.isDir && selected.size === 0) props.onNavigate(entry.path);
+      else toggleSelected(entry);
+      return;
+    }
     setSelected((current) => {
       if (event.metaKey || event.ctrlKey) {
         const next = new Set(current);
@@ -93,6 +113,7 @@ export function FilePane(props: FilePaneProps) {
       }
       return new Set([entry.path]);
     });
+  };
 
   const onDragStart = (entry: SftpEntry, event: DragEvent) => {
     // Dragging a selected row takes the whole selection.
@@ -173,9 +194,10 @@ export function FilePane(props: FilePaneProps) {
             <tr>
               <th className="px-3 py-2 font-medium">{t("sftp.name")}</th>
               <th className="w-20 px-3 py-2 text-right font-medium">{t("sftp.size")}</th>
-              <th className="w-36 px-3 py-2 font-medium">{t("sftp.modified")}</th>
-              {side === "remote" && <th className="w-28 px-3 py-2 font-medium">{t("sftp.permissions")}</th>}
-              {props.showOwner && <th className="w-24 px-3 py-2 font-medium">{t("sftp.owner")}</th>}
+              {/* Phones: name and size; the date goes under the name. */}
+              <th className="w-36 px-3 py-2 font-medium compact:hidden">{t("sftp.modified")}</th>
+              {side === "remote" && <th className="w-28 px-3 py-2 font-medium compact:hidden">{t("sftp.permissions")}</th>}
+              {props.showOwner && <th className="w-24 px-3 py-2 font-medium compact:hidden">{t("sftp.owner")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -190,22 +212,30 @@ export function FilePane(props: FilePaneProps) {
                   onDragEnd={() => (dragging = null)}
                   {...(entry.isDir ? dropProps(entry.path) : {})}
                   onClick={(e) => onRowClick(entry, e)}
+                  onContextMenu={(e) => {
+                    if (!TOUCH) return;
+                    e.preventDefault();
+                    toggleSelected(entry);
+                  }}
                   onDoubleClick={() => (entry.isDir ? props.onNavigate(entry.path) : props.onOpenFile(entry))}
                   className={cn(
                     "cursor-default border-b border-border/60",
                     dropTarget === entry.path ? "bg-accent/15" : isSelected ? "bg-badge" : "hover:bg-muted/50",
                   )}
                 >
-                  <td className="truncate px-3 py-1.5 text-fg">
+                  <td className="truncate px-3 py-1.5 text-fg touch:py-2.5">
                     <span className="flex items-center gap-2">
                       <Icon className={cn("size-4 shrink-0", entry.isDir ? "text-accent" : "text-fg-muted")} />
-                      <span className="truncate">{entry.name}</span>
+                      <span className="min-w-0">
+                        <span className="block truncate">{entry.name}</span>
+                        <span className="hidden truncate text-xs tabular-nums text-fg-muted compact:block">{formatDate(entry.modified)}</span>
+                      </span>
                     </span>
                   </td>
                   <td className="px-3 py-1.5 text-right tabular-nums text-fg-secondary">{entry.isDir ? "" : formatBytes(entry.size)}</td>
-                  <td className="truncate px-3 py-1.5 tabular-nums text-fg-muted">{formatDate(entry.modified)}</td>
-                  {side === "remote" && <td className="truncate px-3 py-1.5 font-mono text-xs text-fg-muted">{modeString(entry)}</td>}
-                  {props.showOwner && <td className="truncate px-3 py-1.5 text-fg-muted">{entry.owner}</td>}
+                  <td className="truncate px-3 py-1.5 tabular-nums text-fg-muted compact:hidden">{formatDate(entry.modified)}</td>
+                  {side === "remote" && <td className="truncate px-3 py-1.5 font-mono text-xs text-fg-muted compact:hidden">{modeString(entry)}</td>}
+                  {props.showOwner && <td className="truncate px-3 py-1.5 text-fg-muted compact:hidden">{entry.owner}</td>}
                 </tr>
               );
             })}
@@ -230,6 +260,11 @@ export function FilePane(props: FilePaneProps) {
               <Button size="sm" variant="primary" className="h-7" onClick={() => props.transfer!.run(selectedEntries)}>
                 {props.transfer.icon}
                 {props.transfer.label}
+              </Button>
+            )}
+            {props.onShare && (
+              <Button size="icon" variant="ghost" onClick={() => props.onShare!(selectedEntries)} title={t("files.share")} aria-label={t("files.share")}>
+                <Share className="size-3.5" />
               </Button>
             )}
             {selectedEntries.length === 1 && (

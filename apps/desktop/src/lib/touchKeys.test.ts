@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyCtrl, controlChar, useCtrl } from "./touchKeys";
+import { applyTouchModifiers, controlChar, TOUCH_KEYS, useTouchModifiers, withTouchModifiers } from "./touchKeys";
 
 describe("touch keys", () => {
   it("turns letters and a few symbols into control characters", () => {
@@ -13,15 +13,27 @@ describe("touch keys", () => {
   });
 
   it("applies Ctrl to the next key only", () => {
-    useCtrl.getState().toggle();
-    expect(applyCtrl("c")).toBe("\x03");
-    expect(useCtrl.getState().armed).toBe(false);
-    expect(applyCtrl("c")).toBe("c");
+    useTouchModifiers.getState().toggle("ctrl");
+    expect(applyTouchModifiers("c")).toBe("\x03");
+    expect(useTouchModifiers.getState().ctrl).toBe(false);
+    expect(applyTouchModifiers("c")).toBe("c");
+  });
+
+  it("sends Alt as an Escape prefix, and both together", () => {
+    expect(withTouchModifiers("b", { ctrl: false, alt: true })).toBe("\x1bb");
+    expect(withTouchModifiers("x", { ctrl: true, alt: true })).toBe("\x1b\x18");
   });
 
   it("lets keys without a control character through, and still disarms", () => {
-    useCtrl.getState().toggle();
-    expect(applyCtrl("1")).toBe("1");
-    expect(useCtrl.getState().armed).toBe(false);
+    useTouchModifiers.getState().toggle("ctrl");
+    expect(applyTouchModifiers("1")).toBe("1");
+    expect(useTouchModifiers.getState().ctrl).toBe(false);
+  });
+
+  it("has the function keys in order", () => {
+    const f = TOUCH_KEYS.filter((key) => /^F\d+$/.test(key.label));
+    expect(f.map((key) => key.label)).toEqual(Array.from({ length: 12 }, (_, i) => `F${i + 1}`));
+    expect(f[0].data).toBe("\x1bOP");
+    expect(f[11].data).toBe("\x1b[24~");
   });
 });

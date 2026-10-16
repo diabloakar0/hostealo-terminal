@@ -1,0 +1,8 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "mobile",
+  "description": "Mobile-only plugins for the main window",
+  "windows": ["main"],
+  "platforms": ["iOS", "android"],
+  "permissions": ["haptics:allow-selection-feedback", "haptics:allow-impact-feedback"]
+}

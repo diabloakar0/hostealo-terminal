@@ -17,6 +17,7 @@ mod rdp_audio;
 mod rdp_clipboard;
 mod rdp_drive;
 mod secrets;
+mod share;
 mod ssh;
 mod ssh_keys;
 mod sync;
@@ -111,6 +112,8 @@ macro_rules! handler {
             ai::ai_models,
             ai::ai_chat,
             ai::ai_cancel,
+            share::share_files,
+            device_auth::device_unlock,
             $($extra),*
         ]
     };
@@ -133,6 +136,10 @@ pub fn run() {
         .manage(importer::ImportState::default())
         .manage(sync::SyncState::default())
         .manage(Arc::new(ssh::PromptRegistry::default()));
+
+    // A light tap on the touch key bars.
+    #[cfg(mobile)]
+    let builder = builder.plugin(tauri_plugin_haptics::init());
 
     // A local shell is desktop-only.
     #[cfg(desktop)]

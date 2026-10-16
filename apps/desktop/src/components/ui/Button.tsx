@@ -10,9 +10,9 @@ const VARIANTS = {
 } as const;
 
 const SIZES = {
-  md: "h-9 px-4 text-sm rounded-btn gap-2",
-  sm: "h-8 px-3 text-[13px] rounded-btn-sm gap-1.5",
-  icon: "size-7 rounded-btn-sm",
+  md: "h-9 px-4 text-sm rounded-btn gap-2 touch:h-11",
+  sm: "h-8 px-3 text-[13px] rounded-btn-sm gap-1.5 touch:h-10",
+  icon: "size-7 rounded-btn-sm touch:size-10",
 } as const;
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

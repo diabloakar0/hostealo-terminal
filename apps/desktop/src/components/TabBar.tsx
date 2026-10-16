@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Activity, Fingerprint, FolderOpen, KeyRound, Menu, Plus, Search, Sparkles, SquareTerminal, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Activity, ChevronDown, Fingerprint, FolderOpen, KeyRound, Menu, Plus, Search, Sparkles, SquareTerminal, X } from "lucide-react";
 import { cn } from "@hostealo/ui/cn";
 
 import { hasLocalShell, isMac } from "../lib/format";
@@ -10,6 +11,7 @@ import { isTerminalTab, useTabs, type Tab } from "../store/tabs";
 import { QuickCommandsButton } from "./QuickCommands";
 import { RdpToolbar } from "./RdpToolbar";
 import { useUi } from "../store/ui";
+import { useCompact } from "../hooks/useCompact";
 import { hostOsId, OsIcon } from "./OsIcon";
 import { StatusDot } from "./StatusDot";
 import { Button } from "./ui/Button";
@@ -21,6 +23,18 @@ export function TabBar() {
   const hosts = useHosts((s) => s.hosts);
   const assistantOpen = useAi((s) => s.open);
   const toggleAssistant = useAi((s) => s.toggle);
+  const compact = useCompact();
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  // A sideways swipe on the bar moves to the next or previous session (phones).
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const onSwipeEnd = (x: number, y: number) => {
+    const start = swipe.current;
+    swipe.current = null;
+    if (!start || Math.abs(x - start.x) < 60 || Math.abs(y - start.y) > 40) return;
+    const index = tabs.findIndex((tab) => tab.id === activeId);
+    const next = tabs[index + (x < start.x ? 1 : -1)];
+    if (next) activate(next.id);
+  };
 
   const label = (tab: Tab) => {
     const host = hosts.find((h) => h.id === tab.hostId)?.name;
@@ -49,23 +63,60 @@ export function TabBar() {
   };
 
   return (
-    <div data-tauri-drag-region className="flex h-11 shrink-0 items-center gap-1 border-b border-border px-2">
+    <div data-tauri-drag-region className="flex h-11 touch:h-13 shrink-0 items-center gap-1 border-b border-border px-2">
       {/* Phone-sized screens: the sidebar is a drawer behind this button. */}
       <Button variant="ghost" size="icon" className="roomy:hidden" onClick={() => useUi.getState().setSidebarOpen(true)} aria-label={t("sidebar.open")}>
         <Menu className="size-4" />
       </Button>
-      <div role="tablist" className="flex min-w-0 items-center gap-1 overflow-x-auto">
-        {tabs.map((tab) => (
-          <TabItem
-            key={tab.id}
-            tab={tab}
-            label={label(tab)}
-            active={tab.id === activeId}
-            onActivate={() => activate(tab.id)}
-            onClose={() => close(tab.id)}
-          />
-        ))}
-      </div>
+      {compact ? (
+        // Phones: the current session, and the others in a list from the bottom (like Safari).
+        activeTab && (
+          <button
+            type="button"
+            onClick={() => setSwitcherOpen(true)}
+            onTouchStart={(e) => (swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+            onTouchEnd={(e) => onSwipeEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY)}
+            aria-haspopup="dialog"
+            aria-label={t("tabs.sessions", { count: tabs.length })}
+            className="flex h-9 min-w-0 shrink cursor-pointer items-center gap-2 rounded-btn-sm border border-border bg-card px-2.5 text-[13px] text-fg shadow-sm"
+          >
+            <TabIcon tab={activeTab} active />
+            <span className="truncate">{label(activeTab)}</span>
+            {tabs.length > 1 && <span className="rounded-badge bg-muted px-1.5 text-[11px] font-medium text-fg-secondary">{tabs.length}</span>}
+            <ChevronDown className="size-3.5 shrink-0 text-fg-muted" />
+          </button>
+        )
+      ) : (
+        <div role="tablist" className="flex min-w-0 items-center gap-1 overflow-x-auto">
+          {tabs.map((tab) => (
+            <TabItem
+              key={tab.id}
+              tab={tab}
+              label={label(tab)}
+              active={tab.id === activeId}
+              onActivate={() => activate(tab.id)}
+              onClose={() => close(tab.id)}
+            />
+          ))}
+        </div>
+      )}
+      {switcherOpen && (
+        <SessionSheet
+          tabs={tabs}
+          activeId={activeId}
+          label={label}
+          onPick={(id) => {
+            activate(id);
+            setSwitcherOpen(false);
+          }}
+          onCloseTab={close}
+          onOpenServer={() => {
+            setSwitcherOpen(false);
+            useUi.getState().setPaletteOpen(true);
+          }}
+          onDismiss={() => setSwitcherOpen(false)}
+        />
+      )}
       {/* Without a local shell (iOS), + opens the search to pick a server. */}
       <Button
         variant="ghost"
@@ -132,7 +183,7 @@ function TabItem({ tab, label, active, onActivate, onClose }: TabItemProps) {
       // The host colour underlines the active tab, matching the stripe over the terminal.
       style={active && accent ? { boxShadow: `inset 0 -2px 0 ${accent.hex}` } : undefined}
       className={cn(
-        "group flex h-7 max-w-52 shrink-0 cursor-pointer items-center gap-2 rounded-btn-sm border pl-2.5 pr-1 text-[13px] transition-colors",
+        "group flex h-7 touch:h-9 max-w-52 shrink-0 cursor-pointer items-center gap-2 rounded-btn-sm border pl-2.5 pr-1 text-[13px] transition-colors",
         active ? "border-border bg-card text-fg shadow-sm" : "border-transparent text-fg-muted hover:bg-muted hover:text-fg",
       )}
     >
@@ -148,11 +199,68 @@ function TabItem({ tab, label, active, onActivate, onClose }: TabItemProps) {
         aria-label={t("tabs.close")}
         className={cn(
           "grid size-5 shrink-0 cursor-pointer place-items-center rounded text-fg-muted hover:bg-muted hover:text-fg",
-          !active && "opacity-0 group-hover:opacity-100",
+          !active && "opacity-0 group-hover:opacity-100 touch:opacity-100",
         )}
       >
         <X className="size-3" />
       </button>
+    </div>
+  );
+}
+
+/** Every open session in a list from the bottom of the screen (phones). */
+function SessionSheet(props: {
+  tabs: Tab[];
+  activeId: string | null;
+  label: (tab: Tab) => string;
+  onPick: (id: string) => void;
+  onCloseTab: (id: string) => void;
+  onOpenServer: () => void;
+  onDismiss: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40" onClick={props.onDismiss} role="presentation">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("tabs.sessions", { count: props.tabs.length })}
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[75%] overflow-y-auto rounded-t-2xl border-t border-border bg-card px-3 pt-2 pb-[max(env(safe-area-inset-bottom),12px)] shadow-xl"
+      >
+        <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-border" aria-hidden />
+        <p className="px-1 pb-2 text-sm font-semibold text-fg">{t("tabs.sessions", { count: props.tabs.length })}</p>
+        <ul className="flex flex-col gap-1.5">
+          {props.tabs.map((tab) => (
+            <li key={tab.id} className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => props.onPick(tab.id)}
+                aria-current={tab.id === props.activeId ? "page" : undefined}
+                className={cn(
+                  "flex min-h-12 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-btn border px-3 text-left text-sm",
+                  tab.id === props.activeId ? "border-accent bg-accent/10 text-fg" : "border-border text-fg-secondary",
+                )}
+              >
+                <TabIcon tab={tab} active={tab.id === props.activeId} />
+                <span className="truncate">{props.label(tab)}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => props.onCloseTab(tab.id)}
+                aria-label={`${t("tabs.close")}: ${props.label(tab)}`}
+                className="grid size-12 shrink-0 cursor-pointer place-items-center rounded-btn text-fg-muted active:bg-muted"
+              >
+                <X className="size-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+        <Button variant="primary" className="mt-3 w-full" onClick={props.onOpenServer}>
+          <Plus className="size-4" />
+          {t("tabs.openServer")}
+        </Button>
+      </div>
     </div>
   );
 }

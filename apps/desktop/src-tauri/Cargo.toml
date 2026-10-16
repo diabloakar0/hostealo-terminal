@@ -80,12 +80,16 @@ objc2-app-kit = { version = "0.3", default-features = false, features = ["std", 
 # Touch ID, Face ID or the device password before showing a saved password (device_auth.rs).
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc2-local-authentication = { version = "0.3", default-features = false, features = ["std", "LAContext", "LAPublicDefines", "block2"] }
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSError", "NSData"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSError", "NSData", "NSURL", "NSArray"] }
 block2 = "0.6"
 objc2 = "0.6"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_System_DataExchange"] }
+
+# A light tap on the touch key bars (iPhone and iPad; lib/haptics.ts).
+[target.'cfg(any(target_os = "ios", target_os = "android"))'.dependencies]
+tauri-plugin-haptics = "2"
 
 # iOS keychain: `keyring` only picks a credential store on desktop, so on iOS the app sets the
 # "protected data" store itself (see keystore.rs).
@@ -97,5 +101,11 @@ libc = "0.2"
 if-addrs = "0.15"
 # The iOS clipboard for remote desktop sessions (rdp_clipboard/ios.rs); UIKit hands images over
 # as PNG.
-objc2-ui-kit = { version = "0.3", default-features = false, features = ["std", "UIPasteboard", "UIImage"] }
+# ... and the share sheet for local files (share.rs).
+objc2-ui-kit = { version = "0.3", default-features = false, features = [
+  "std", "block2", "objc2-core-foundation", "UIPasteboard", "UIImage", "UIActivity", "UIActivityViewController",
+  "UIApplication", "UIWindow", "UIView", "UIViewController", "UIResponder", "UIPopoverPresentationController",
+  "UIPresentationController",
+] }
+objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFCGTypes"] }
 png = "0.18"

@@ -119,7 +119,7 @@ function NavItem({
         type="button"
         onClick={onClick}
         aria-current={current ? "page" : undefined}
-        className="v2-nav-link flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left [&>svg]:size-4 [&>svg]:shrink-0"
+        className="v2-nav-link flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left touch:py-2.5 [&>svg]:size-4 [&>svg]:shrink-0"
       >
         {icon}
         <span className="flex-1 truncate">{children}</span>

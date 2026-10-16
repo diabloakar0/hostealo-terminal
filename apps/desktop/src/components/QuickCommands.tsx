@@ -194,10 +194,10 @@ function QuickCommandsPanel({ anchor, onClose }: { anchor: HTMLElement | null; o
                   </span>
                   <span className="block truncate font-mono text-xs text-fg-muted">{snippet.command.replace(/\n/g, " ⏎ ")}</span>
                 </button>
-                <IconButton label={t("snippets.edit")} onClick={() => setEditing(snippet)} className="opacity-0 group-hover:opacity-100">
+                <IconButton label={t("snippets.edit")} onClick={() => setEditing(snippet)} className="opacity-0 group-hover:opacity-100 touch:opacity-100">
                   <Pencil />
                 </IconButton>
-                <IconButton label={t("snippets.delete")} onClick={() => setDeleting(snippet)} className="opacity-0 hover:!text-red group-hover:opacity-100">
+                <IconButton label={t("snippets.delete")} onClick={() => setDeleting(snippet)} className="opacity-0 hover:!text-red group-hover:opacity-100 touch:opacity-100">
                   <Trash2 />
                 </IconButton>
                 <IconButton label={t("snippets.run")} onClick={() => use(snippet, true)} disabled={!terminal} className="text-accent">

@@ -1,7 +1,9 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Minus, Plus, Settings } from "lucide-react";
 
+import { isIOS, isMac } from "../lib/format";
+import { deviceUnlock } from "../lib/ipc";
 import { useSettings, type LanguagePreference, type ThemePreference } from "../store/settings";
 import { Button } from "./ui/Button";
 import { Checkbox, Segmented } from "./ui/Form";
@@ -12,7 +14,19 @@ const MAX_FONT = 24;
 
 export function SettingsDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
-  const { theme, language, fontSize, highlightOutput, alertsEnabled, alertsNotify, alertDisk, alertMemory, alertCpu, update } = useSettings();
+  const { theme, language, fontSize, highlightOutput, screenReader, appLock, alertsEnabled, alertsNotify, alertDisk, alertMemory, alertCpu, update } = useSettings();
+  const [lockError, setLockError] = useState<string | null>(null);
+  // Turning the lock on asks once first, so it is never set where it cannot be opened.
+  const setAppLock = async (on: boolean) => {
+    setLockError(null);
+    if (!on) return update({ appLock: false });
+    try {
+      await deviceUnlock(t("lock.reason"));
+      update({ appLock: true });
+    } catch (e) {
+      if (String(e) !== "cancelled") setLockError(String(e));
+    }
+  };
 
   return (
     <Modal title={t("settings.title")} icon={<Settings className="size-4" />} onClose={onClose}>
@@ -59,6 +73,24 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           </Checkbox>
           <p className="pl-6 text-xs leading-relaxed text-fg-muted">{t("settings.highlightHint")}</p>
         </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Checkbox checked={screenReader} onChange={(screenReader) => update({ screenReader })}>
+            <span className="font-medium text-fg">{t("settings.screenReader")}</span>
+          </Checkbox>
+          <p className="pl-6 text-xs leading-relaxed text-fg-muted">{t("settings.screenReaderHint")}</p>
+        </div>
+
+        {/* Where the system can confirm the owner: Face ID / Touch ID or the device password. */}
+        {(isIOS || isMac) && (
+          <div className="flex flex-col gap-1.5">
+            <Checkbox checked={appLock} onChange={(on) => void setAppLock(on)}>
+              <span className="font-medium text-fg">{isIOS ? t("settings.appLockIos") : t("settings.appLockMac")}</span>
+            </Checkbox>
+            <p className="pl-6 text-xs leading-relaxed text-fg-muted">{t("settings.appLockHint")}</p>
+            {lockError && <p className="pl-6 text-xs text-red">{lockError}</p>}
+          </div>
+        )}
 
         <Section label={t("settingsAlerts.title")}>
           <Checkbox checked={alertsEnabled} onChange={(alertsEnabled) => update({ alertsEnabled })}>

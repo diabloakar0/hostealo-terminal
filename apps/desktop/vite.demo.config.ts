@@ -3,10 +3,13 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
+import { remFontSizes } from "./remFontSizes";
+
 // The interactive demo for hostealo.es/terminal: the app on a pretend backend, as static files
 // served from /terminal/demo/ (relative paths, so any folder works).
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  css: { postcss: { plugins: [remFontSizes()] } },
   base: "./",
   build: {
     outDir: resolve(__dirname, "../../website/terminal/public/terminal/demo"),

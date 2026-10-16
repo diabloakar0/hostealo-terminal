@@ -9,6 +9,10 @@ interface Settings {
   fontSize: number;
   /** Highlight IPs, errors, dates... in plain terminal output. */
   highlightOutput: boolean;
+  /** The terminal's screen reader mode (VoiceOver, NVDA...): output is read as it arrives. */
+  screenReader: boolean;
+  /** Face ID / Touch ID (or the device password) to open the app and to come back to it. */
+  appLock: boolean;
   /** Folder paths collapsed in the sidebar. */
   collapsedFolders: string[];
   /** The file browser shows this computer's files next to the server's. */
@@ -35,6 +39,8 @@ const DEFAULTS: Settings = {
   language: "system",
   fontSize: 13,
   highlightOutput: true,
+  screenReader: false,
+  appLock: false,
   collapsedFolders: [],
   filesShowLocal: true,
   hostealoSyncMinutes: 15,

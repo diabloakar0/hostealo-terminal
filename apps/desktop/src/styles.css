@@ -14,6 +14,8 @@
   }
 }
 @custom-variant roomy (@media (min-width: 768px) and (min-height: 501px));
+/* Touch screens: no hover, so what shows on hover is always shown. */
+@custom-variant touch (@media (hover: none));
 
 html,
 body,
@@ -27,6 +29,47 @@ body,
 #root {
   box-sizing: border-box;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* iPhone and iPad: fields at 16px or more, or iOS zooms into each one it focuses; no zoom on a
+   double tap either (it would fight taps on rows and keys). Pinch zoom stays for those who need it. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    /* An expression, so remFontSizes.ts leaves it in px: iOS checks the real size. */
+    font-size: max(16px, 1em);
+  }
+  html {
+    touch-action: manipulation;
+  }
+}
+
+/* Increase Contrast (iOS and macOS accessibility settings): grey text darker (lighter in dark),
+   above 7:1 on every background. The default colours stay the panel's. */
+@media (prefers-contrast: more) {
+  [data-theme="light"] {
+    --text-muted: #52525b;
+    --text-secondary: #27272a;
+    --bg-border: #a1a1aa;
+  }
+  [data-theme="dark"] {
+    --text-muted: #d4d4d8;
+    --text-secondary: #e4e4e7;
+    --bg-border: #52525b;
+  }
+}
+
+/* Movement only for those who want it (Settings › Accessibility › Motion › Reduce Motion). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* On a phone the app fills the screen, so the safe areas around it take the colour of the
@@ -49,8 +92,10 @@ html[data-edge="all"] body {
   background-color: #000;
 }
 
-/* Desktop app chrome: no text selection outside inputs and the terminal (xterm handles its own). */
+/* Desktop app chrome: no text selection outside inputs and the terminal (xterm handles its own).
+   No iOS callout either: a held finger opens the app's own menu (lib/longPress.ts). */
 body {
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }

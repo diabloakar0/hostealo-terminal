@@ -33,13 +33,27 @@
     "close": "Cerrar pestaña",
     "local": "Local",
     "openServer": "Abrir un servidor",
-    "openServerHint": "Elige uno de la barra lateral o búscalo."
+    "openServerHint": "Elige uno de la barra lateral o búscalo.",
+    "sessions_one": "{{count}} sesión abierta",
+    "sessions_other": "{{count}} sesiones abiertas"
   },
   "terminal": {
     "exited": "El proceso terminó con código {{code}}. Pulsa Intro para reiniciar.",
     "exitedUnknown": "El proceso terminó. Pulsa Intro para reiniciar.",
     "spawnFailed": "No se pudo iniciar la shell: {{error}}",
-    "keys": "Teclas de la terminal"
+    "keys": "Teclas de la terminal",
+    "key": {
+      "home": "Inicio",
+      "end": "Fin",
+      "pageUp": "RePág",
+      "pageDown": "AvPág",
+      "paste": "Pegar",
+      "select": "Seleccionar",
+      "selectTitle": "Texto de la terminal",
+      "copyAll": "Copiar todo",
+      "copied": "Copiado",
+      "selectHint": "Mantén el dedo sobre el texto para seleccionarlo."
+    }
   },
   "monitor": {
     "cpu": "CPU",
@@ -60,7 +74,8 @@
       "connecting": "Conectando…",
       "authenticating": "Autenticando…",
       "closed": "Desconectado",
-      "failed": "Error de conexión"
+      "failed": "Error de conexión",
+      "connected": "Conectado"
     }
   },
   "settings": {
@@ -75,12 +90,18 @@
     "highlightHint": "Colorea IPs, errores, avisos, fechas y URLs en la salida de comandos sin color (tcpdump, logs…). Los programas que ya usan sus propios colores no se tocan.",
     "auto": "Auto",
     "summary": "Tema, idioma y más",
-    "more": "Todos los ajustes"
+    "more": "Todos los ajustes",
+    "screenReader": "Modo lector de pantalla en la terminal",
+    "screenReaderHint": "Para VoiceOver y otros lectores: la salida de la terminal se lee según llega.",
+    "appLockIos": "Bloquear con Face ID",
+    "appLockMac": "Bloquear con Touch ID",
+    "appLockHint": "Pide Face ID, Touch ID o la contraseña del dispositivo al abrir la app y al volver a ella tras un minuto."
   },
   "ssh": {
     "connecting": "Conectando a {{target}}…",
     "failed": "No se pudo conectar: {{error}}\nPulsa Intro para reconectar.",
-    "closed": "Conexión cerrada. Pulsa Intro para reconectar."
+    "closed": "Conexión cerrada. Pulsa Intro para reconectar.",
+    "reconnecting": "Reconectando…"
   },
   "host": {
     "newTitle": "Nuevo servidor",
@@ -512,7 +533,14 @@
     "hideLocal": "Ocultar los archivos de este equipo",
     "showLocal": "Mostrar los archivos de este equipo",
     "localDeleteNote": "Se borra de este equipo, sin pasar por la papelera.",
-    "windowsSshHint": "Los archivos de un servidor Windows van por su servidor SSH, que suele venir desactivado. Para activarlo, en PowerShell como administrador: Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0; Start-Service sshd; Set-Service sshd -StartupType Automatic. Mientras tanto, puedes pasar archivos con la carpeta compartida del escritorio remoto."
+    "windowsSshHint": "Los archivos de un servidor Windows van por su servidor SSH, que suele venir desactivado. Para activarlo, en PowerShell como administrador: Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0; Start-Service sshd; Set-Service sshd -StartupType Automatic. Mientras tanto, puedes pasar archivos con la carpeta compartida del escritorio remoto.",
+    "share": "Compartir",
+    "panes": "Lado",
+    "thisDevice": "Este iPhone",
+    "localHintIos": "También en Archivos › En mi iPhone › Hostealo Terminal",
+    "thisIpad": "Este iPad",
+    "localHintIpad": "También en Archivos › En mi iPad › Hostealo Terminal",
+    "phoneHint": "Toca una carpeta para abrirla · mantén pulsado para seleccionar"
   },
   "sync": {
     "title": "Sincronizar dispositivos",
@@ -743,5 +771,11 @@
         "hint": "libvirt o Proxmox no están en marcha en este servidor: prueba systemctl start libvirtd (o pve-cluster en Proxmox)."
       }
     }
+  },
+  "lock": {
+    "title": "Hostealo Terminal está bloqueada",
+    "hint": "Usa Face ID, Touch ID o la contraseña del dispositivo para entrar.",
+    "unlock": "Desbloquear",
+    "reason": "Desbloquear Hostealo Terminal"
   }
 }

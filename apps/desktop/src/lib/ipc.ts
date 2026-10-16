@@ -664,3 +664,9 @@ export const syncExport = (path: string, passphrase: string, includeSecrets: boo
   invoke("sync_export", { path, passphrase, includeSecrets });
 /** Merges a backup file into this device. */
 export const syncImport = (path: string, passphrase: string): Promise<SyncSummary> => invoke("sync_import", { path, passphrase });
+
+/** The system share sheet for local files (iPhone and iPad only). */
+export const shareFiles = (paths: string[]): Promise<void> => invoke("share_files", { paths });
+
+/** Asks the owner for Face ID, Touch ID or the device password; rejects with "cancelled". */
+export const deviceUnlock = (reason: string): Promise<void> => invoke("device_unlock", { reason });

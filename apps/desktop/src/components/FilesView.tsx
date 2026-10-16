@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { ArrowLeft, ArrowRight, Download, FolderUp, Laptop, LoaderCircle, PanelLeft, RefreshCw, Server, Upload, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, FolderUp, Laptop, LoaderCircle, PanelLeft, RefreshCw, Server, Smartphone, Tablet, Upload, X } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { downloadDir } from "@tauri-apps/api/path";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { cn } from "@hostealo/ui/cn";
 
-import { formatBytes } from "../lib/format";
+import { formatBytes, isIOS, isIPad } from "../lib/format";
 import { ftpApi, sftpApi, type FileApi } from "../lib/files";
-import { localDelete, localHome, localList, localMkdir, localRename, type SftpEntry, type TransferProgress } from "../lib/ipc";
+import { localDelete, localHome, localList, localMkdir, localRename, shareFiles, type SftpEntry, type TransferProgress } from "../lib/ipc";
 import { useHostAccent } from "../hooks/useHostColor";
+import { useCompact } from "../hooks/useCompact";
 import { useHosts } from "../store/hosts";
 import { usePrompts } from "../store/prompts";
 import { useSettings } from "../store/settings";
@@ -41,7 +42,12 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
   const accent = useHostAccent(tab.hostId);
   const hostName = useHosts((s) => s.hosts.find((h) => h.id === tab.hostId)?.name ?? "");
   const windowsHost = useHosts((s) => s.hosts.find((h) => h.id === tab.hostId)?.protocol === "rdp");
-  const showLocal = useSettings((s) => s.filesShowLocal);
+  const compact = useCompact();
+  // Phones show one pane at a time, picked at the top; the local one is always there to
+  // receive downloads (on iOS, the app's folder that the Files app shows).
+  const [phonePane, setPhonePane] = useState<"local" | "remote">("remote");
+  const showLocal = useSettings((s) => s.filesShowLocal) || compact;
+  const thisDevice = isIPad ? t("files.thisIpad") : isIOS ? t("files.thisDevice") : t("files.thisComputer");
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -276,12 +282,39 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
     <div className="relative flex h-full flex-col">
       {accent && <div className="h-0.5 shrink-0" style={{ background: accent.hex }} />}
 
+      {compact && (
+        <div className="flex shrink-0 gap-1 border-b border-border p-1.5" role="tablist" aria-label={t("files.panes")}>
+          {(
+            [
+              ["local", isIPad ? <Tablet className="size-4" /> : isIOS ? <Smartphone className="size-4" /> : <Laptop className="size-4" />, thisDevice],
+              ["remote", <Server className="size-4" />, hostName],
+            ] as const
+          ).map(([pane, icon, label]) => (
+            <button
+              key={pane}
+              type="button"
+              role="tab"
+              aria-selected={phonePane === pane}
+              onClick={() => setPhonePane(pane)}
+              className={cn(
+                "flex h-10 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-btn text-sm",
+                phonePane === pane ? "bg-card font-medium text-fg shadow-sm ring-1 ring-border" : "text-fg-muted",
+              )}
+            >
+              {icon}
+              <span className="truncate">{label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex min-h-0 flex-1">
         {showLocal && (
+          <div className={cn("flex min-w-0 flex-1", compact && phonePane !== "local" && "hidden")}>
           <FilePane
             side="local"
-            title={t("files.thisComputer")}
-            icon={<Laptop className="size-3.5" />}
+            title={thisDevice}
+            icon={isIOS ? <Smartphone className="size-3.5" /> : <Laptop className="size-3.5" />}
             cwd={localCwd}
             entries={localEntries}
             loading={localLoading}
@@ -304,12 +337,14 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
             }}
             onOpenFile={(entry) => void upload([entry.path])}
             transfer={{ label: t("files.uploadSelected"), icon: <ArrowRight className="size-3.5" />, run: (items) => void upload(items.map((i) => i.path)) }}
+            onShare={isIOS ? (items) => void shareFiles(items.filter((i) => !i.isDir).map((i) => i.path)).catch(() => {}) : undefined}
             onReceive={(drag: PaneDrag, dir) => void downloadTo(drag.entries, dir)}
-            footer={<span className="truncate">{t("files.localHint")}</span>}
+            footer={<span className="truncate">{isIPad ? t("files.localHintIpad") : isIOS ? t("files.localHintIos") : t("files.localHint")}</span>}
           />
+          </div>
         )}
 
-        <div className={cn("flex min-w-0 flex-1", showLocal && "border-l border-border")}>
+        <div className={cn("flex min-w-0 flex-1", showLocal && !compact && "border-l border-border", compact && phonePane !== "remote" && "hidden")}>
           <FilePane
             side="remote"
             title={hostName}
@@ -350,16 +385,20 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
                 <ToolbarButton label={t("sftp.upload")} onClick={() => void pickAndUpload(false)}>
                   <Upload className="size-4" />
                 </ToolbarButton>
-                <div className="mx-0.5 h-5 w-px bg-border" />
-                <ToolbarButton
-                  label={showLocal ? t("files.hideLocal") : t("files.showLocal")}
-                  onClick={() => useSettings.getState().update({ filesShowLocal: !showLocal })}
-                >
-                  <PanelLeft className={cn("size-4", showLocal && "text-accent")} />
-                </ToolbarButton>
+                {!compact && (
+                  <>
+                    <div className="mx-0.5 h-5 w-px bg-border" />
+                    <ToolbarButton
+                      label={showLocal ? t("files.hideLocal") : t("files.showLocal")}
+                      onClick={() => useSettings.getState().update({ filesShowLocal: !showLocal })}
+                    >
+                      <PanelLeft className={cn("size-4", showLocal && "text-accent")} />
+                    </ToolbarButton>
+                  </>
+                )}
               </>
             }
-            footer={<span className="truncate">{showLocal ? t("files.remoteHint") : t("sftp.dropHint")}</span>}
+            footer={<span className="truncate">{compact ? t("files.phoneHint") : showLocal ? t("files.remoteHint") : t("sftp.dropHint")}</span>}
           />
         </div>
       </div>

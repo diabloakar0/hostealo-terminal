@@ -33,13 +33,27 @@
     "close": "Close tab",
     "local": "Local",
     "openServer": "Open a server",
-    "openServerHint": "Pick one from the sidebar or search for it."
+    "openServerHint": "Pick one from the sidebar or search for it.",
+    "sessions_one": "{{count}} open session",
+    "sessions_other": "{{count}} open sessions"
   },
   "terminal": {
     "exited": "Process exited with code {{code}}. Press Enter to restart.",
     "exitedUnknown": "Process exited. Press Enter to restart.",
     "spawnFailed": "Could not start the shell: {{error}}",
-    "keys": "Terminal keys"
+    "keys": "Terminal keys",
+    "key": {
+      "home": "Home",
+      "end": "End",
+      "pageUp": "PgUp",
+      "pageDown": "PgDn",
+      "paste": "Paste",
+      "select": "Select",
+      "selectTitle": "Terminal text",
+      "copyAll": "Copy all",
+      "copied": "Copied",
+      "selectHint": "Hold your finger on the text to select it."
+    }
   },
   "monitor": {
     "cpu": "CPU",
@@ -60,7 +74,8 @@
       "connecting": "Connecting…",
       "authenticating": "Authenticating…",
       "closed": "Disconnected",
-      "failed": "Connection failed"
+      "failed": "Connection failed",
+      "connected": "Connected"
     }
   },
   "settings": {
@@ -75,12 +90,18 @@
     "highlightHint": "Colours IP addresses, errors, warnings, dates and URLs in plain command output (tcpdump, logs…). Programs that use their own colours are left untouched.",
     "auto": "Auto",
     "summary": "Theme, language and more",
-    "more": "All settings"
+    "more": "All settings",
+    "screenReader": "Screen reader mode in the terminal",
+    "screenReaderHint": "For VoiceOver and other screen readers: terminal output is read as it arrives.",
+    "appLockIos": "Lock with Face ID",
+    "appLockMac": "Lock with Touch ID",
+    "appLockHint": "Asks for Face ID, Touch ID or the device password when the app opens and when you come back after a minute."
   },
   "ssh": {
     "connecting": "Connecting to {{target}}…",
     "failed": "Connection failed: {{error}}\nPress Enter to reconnect.",
-    "closed": "Connection closed. Press Enter to reconnect."
+    "closed": "Connection closed. Press Enter to reconnect.",
+    "reconnecting": "Reconnecting…"
   },
   "host": {
     "newTitle": "New host",
@@ -512,7 +533,14 @@
     "hideLocal": "Hide this computer's files",
     "showLocal": "Show this computer's files",
     "localDeleteNote": "It is deleted from this computer, without going to the bin.",
-    "windowsSshHint": "A Windows server's files go over its SSH server, which is usually off. To turn it on, in PowerShell as administrator: Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0; Start-Service sshd; Set-Service sshd -StartupType Automatic. Meanwhile, you can move files with the remote desktop's shared folder."
+    "windowsSshHint": "A Windows server's files go over its SSH server, which is usually off. To turn it on, in PowerShell as administrator: Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0; Start-Service sshd; Set-Service sshd -StartupType Automatic. Meanwhile, you can move files with the remote desktop's shared folder.",
+    "share": "Share",
+    "panes": "Side",
+    "thisDevice": "This iPhone",
+    "localHintIos": "Also in Files › On My iPhone › Hostealo Terminal",
+    "thisIpad": "This iPad",
+    "localHintIpad": "Also in Files › On My iPad › Hostealo Terminal",
+    "phoneHint": "Tap a folder to open it · hold to select"
   },
   "sync": {
     "title": "Sync devices",
@@ -743,5 +771,11 @@
         "hint": "libvirt or Proxmox is not running on this server: try systemctl start libvirtd (or pve-cluster on Proxmox)."
       }
     }
+  },
+  "lock": {
+    "title": "Hostealo Terminal is locked",
+    "hint": "Use Face ID, Touch ID or the device password to get in.",
+    "unlock": "Unlock",
+    "reason": "Unlock Hostealo Terminal"
   }
 }

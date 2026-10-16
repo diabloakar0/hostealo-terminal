@@ -75,7 +75,7 @@ export function RdpKeyboard({ send, onClose }: { send: (ops: RdpInput[]) => void
   };
 
   const keep = (e: React.SyntheticEvent) => e.preventDefault();
-  const key = "flex h-8 min-w-10 shrink-0 items-center justify-center rounded-btn-sm border border-white/15 bg-white/10 px-2 font-mono text-[13px] text-white active:bg-white/25";
+  const key = "flex h-8 min-w-10 touch:h-11 touch:min-w-11 shrink-0 items-center justify-center rounded-btn-sm border border-white/15 bg-white/10 px-2 font-mono text-[13px] text-white active:bg-white/25";
   const modifiers: { id: Modifier; label: string }[] = [
     { id: "ctrl", label: "Ctrl" },
     { id: "alt", label: "Alt" },

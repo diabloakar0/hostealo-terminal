@@ -245,6 +245,11 @@ mockIPC(
         return snippets.remove(String(a.id));
       case "hosts_reveal_secret":
         return new Promise((resolve) => later(500, () => resolve("Pr0d-w3b-01!2026")));
+      // Face ID / Touch ID: the demo has no owner to ask.
+      case "device_unlock":
+        return new Promise((resolve) => later(400, () => resolve(null)));
+      case "share_files":
+        return null;
       case "rdp_resize":
         send(rdpDisplay, { type: "size", width: a.width, height: a.height });
         later(50, () => send(rdpFrame, fakeDesktop(Number(a.width), Number(a.height))));

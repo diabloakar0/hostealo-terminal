@@ -15,7 +15,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
       autoCorrect="off"
       spellCheck={false}
       className={cn(
-        "h-9 w-full min-w-0 rounded-btn border border-input-border bg-input px-3 text-sm text-fg shadow-sm outline-none transition-[border-color,box-shadow]",
+        "h-9 touch:h-11 w-full min-w-0 rounded-btn border border-input-border bg-input px-3 text-sm text-fg shadow-sm outline-none transition-[border-color,box-shadow]",
         "select-text placeholder:text-fg-muted/70 focus:border-fg-muted focus:ring-4 focus:ring-ring",
         "disabled:cursor-not-allowed disabled:opacity-60",
         className,

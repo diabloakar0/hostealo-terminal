@@ -45,7 +45,12 @@ export function Modal({ title, icon, tone = "default", onClose, children, footer
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onMouseDown={onClose}>
+    // Phones: a sheet from the bottom, as in iOS apps, above the on-screen keyboard
+    // (--app-height is the part of the screen the keyboard leaves, see main.tsx).
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 compact:bottom-auto compact:h-[var(--app-height,100dvh)] compact:place-items-end compact:p-0"
+      onMouseDown={onClose}
+    >
       <div
         ref={dialogRef}
         role="dialog"
@@ -56,9 +61,11 @@ export function Modal({ title, icon, tone = "default", onClose, children, footer
         className={cn(
           "flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col rounded-card border border-border bg-card shadow-md outline-none",
           className,
+          "compact:max-h-[92%] compact:max-w-none compact:rounded-b-none compact:rounded-t-2xl compact:border-x-0 compact:border-b-0 compact:pb-[env(safe-area-inset-bottom)]",
         )}
       >
-        <header className="flex items-center gap-3 border-b border-border px-5 py-4">
+        <div className="mx-auto mt-2 hidden h-1 w-10 shrink-0 rounded-full bg-border compact:block" aria-hidden />
+        <header className="flex items-center gap-3 border-b border-border px-5 py-4 compact:pt-2">
           {icon && (
             <div
               className={cn(
@@ -78,7 +85,7 @@ export function Modal({ title, icon, tone = "default", onClose, children, footer
         </header>
         <div className="min-h-0 overflow-y-auto px-5 py-5">{children}</div>
         {footer && (
-          <footer className="flex justify-end gap-2 border-t border-border bg-deep px-5 py-3 rounded-b-card">
+          <footer className="flex justify-end gap-2 border-t border-border bg-deep px-5 py-3 rounded-b-card compact:rounded-none">
             {footer}
           </footer>
         )}

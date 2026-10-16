@@ -366,7 +366,7 @@ export function HostTree(props: HostTreeProps) {
                       aria-expanded={open}
                       data-section-active={containsActive || undefined}
                       className={cn(
-                        "v2-nav-link v2-nav-parent flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left",
+                        "v2-nav-link v2-nav-parent flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left touch:py-2.5",
                         dropTarget === node.path && "bg-badge ring-1 ring-accent",
                       )}
                     >
@@ -493,7 +493,7 @@ function TopHostItem({ host, status, active, onConnect, onMenu, subtitle }: Host
         onClick={(e) => onConnect(e.metaKey || e.ctrlKey)}
         aria-current={active ? "page" : undefined}
         title={hostTitle(host)}
-        className="v2-nav-link flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left"
+        className="v2-nav-link flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left touch:py-2.5"
       >
         {hostOsId(host) ? (
           <OsIcon id={hostOsId(host)!} color={logoColor(host, accent)} />
@@ -527,7 +527,7 @@ function TreeHostItem({ host, status, active, onConnect, onMenu, small }: HostIt
         aria-current={active ? "page" : undefined}
         title={hostTitle(host)}
         className={cn(
-          "flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-left",
+          "flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-left touch:py-2",
           small ? "v2-nav-link v2-nav-leaf text-xs" : "v2-nav-link v2-nav-child",
         )}
       >

@@ -31,6 +31,7 @@ import { useApplyPreferences } from "./hooks/usePreferences";
 import { startAlertWatch } from "./lib/alertWatch";
 import { hasLocalShell, isIOS, isMac } from "./lib/format";
 import { TouchKeys } from "./components/TouchKeys";
+import { LockScreen } from "./components/LockScreen";
 import type { Host } from "./lib/ipc";
 import { matchShortcut } from "./lib/shortcuts";
 import { useAi } from "./store/ai";
@@ -39,6 +40,9 @@ import { useHosts } from "./store/hosts";
 import { useSettings } from "./store/settings";
 import { LOCAL_MONITOR, startLocalMonitor, useMonitors } from "./store/monitor";
 import { hostTabKind, isEnded, isTerminalTab, useTabs, type Tab } from "./store/tabs";
+
+/** Time away after which the app lock asks again. */
+const LOCK_AFTER_MS = 60_000;
 
 type HostDialogState = { mode: "new"; folder: string | null } | { mode: "edit"; host: Host } | null;
 
@@ -58,6 +62,17 @@ export default function App() {
   const phoneLandscape = usePhoneLandscape();
   // Remote desktop on a phone on its side: nothing but the desktop, the tab bar on demand.
   const [chromeShown, setChromeShown] = useState(false);
+  // App lock (Settings): locked on start, and again after a while away from the app.
+  const [locked, setLocked] = useState(() => useSettings.getState().appLock);
+  useEffect(() => {
+    let hiddenAt = 0;
+    const onVisibility = () => {
+      if (document.hidden) hiddenAt = Date.now();
+      else if (useSettings.getState().appLock && hiddenAt && Date.now() - hiddenAt > LOCK_AFTER_MS) setLocked(true);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
   const sidebarOpen = useUi((s) => s.sidebarOpen);
   const setSidebarOpen = useUi((s) => s.setSidebarOpen);
 
@@ -276,6 +291,7 @@ export default function App() {
       <PromptDialog />
       <AlertToasts />
       <CommandPalette onOpenHost={openHost} onNewHost={() => setHostDialog({ mode: "new", folder: null })} onOpenSettings={() => setSettingsOpen(true)} />
+      {locked && <LockScreen onUnlock={() => setLocked(false)} />}
     </div>
   );
 }

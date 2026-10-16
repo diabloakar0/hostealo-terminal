@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@hostealo/ui/cn";
 
 import type { TabStatus } from "../store/tabs";
@@ -22,6 +23,8 @@ export function worstStatus(statuses: Iterable<TabStatus | undefined>): TabStatu
   return worst;
 }
 
+/** A coloured dot, read out by screen readers as its status (the colour alone tells them nothing). */
 export function StatusDot({ status, small, className }: { status: TabStatus; small?: boolean; className?: string }) {
-  return <span aria-hidden className={cn("v2-dot", small && "v2-dot-sm", DOTS[status], className)} />;
+  const { t } = useTranslation();
+  return <span role="img" aria-label={t(`monitor.status.${status}`)} className={cn("v2-dot", small && "v2-dot-sm", DOTS[status], className)} />;
 }

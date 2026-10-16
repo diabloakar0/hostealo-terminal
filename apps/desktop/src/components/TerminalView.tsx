@@ -14,7 +14,8 @@ import { OutputHighlighter } from "../lib/highlight";
 import { createBackend, type SessionExit } from "../lib/sessions";
 import { matchShortcut } from "../lib/shortcuts";
 import { registerTerminal } from "../lib/terminals";
-import { applyCtrl } from "../lib/touchKeys";
+import { applyTouchModifiers } from "../lib/touchKeys";
+import { isIOS } from "../lib/format";
 import { useHostAccent } from "../hooks/useHostColor";
 import { useResolvedTheme } from "../hooks/usePreferences";
 import { useSettings } from "../store/settings";
@@ -30,6 +31,14 @@ interface TerminalViewProps {
   active: boolean;
 }
 
+/** The font sizes a pinch can reach. */
+const MIN_FONT = 8;
+const MAX_FONT = 28;
+/** Time away from the app after which a dropped session reconnects on return. */
+const AWAY_MS = 5_000;
+/** How long after coming back a session that drops still counts as dropped while away. */
+const RESUME_WINDOW_MS = 30_000;
+
 export function TerminalView({ tab, active }: TerminalViewProps) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,6 +47,7 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
   const theme = useResolvedTheme();
   const accent = useHostAccent(tab.kind === "ssh" ? tab.hostId : null);
   const fontSize = useSettings((s) => s.fontSize);
+  const screenReader = useSettings((s) => s.screenReader);
   const termTheme = useMemo(() => {
     const base = theme === "light" ? hostealoLight : hostealoDark;
     return accent ? tintTerminalTheme(base, accent.color, theme) : base;
@@ -59,6 +69,7 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
       cursorBlink: true,
       scrollback: 10_000,
       macOptionIsMeta: true,
+      screenReaderMode: settings.screenReader,
       allowProposedApi: true,
       theme: document.documentElement.dataset.theme === "light" ? hostealoLight : hostealoDark,
     });
@@ -97,10 +108,35 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
         onExit: (exit) => {
           if (disposed) return;
           exited = true;
+          // Dropped while the app was in the background (iOS cuts connections there): pick it
+          // up again by itself, keeping what the screen showed.
+          if (tabRef.current.kind === "ssh" && isIOS && resumedRecently()) return reconnect();
           term.write(`\r\n${describeExit(exit)}`);
         },
       });
     };
+
+    // Coming back to the app after a while: a session that died meanwhile reconnects, once.
+    let hiddenAt = 0;
+    let resumedAt = 0;
+    let reconnected = false;
+    const resumedRecently = () => !reconnected && resumedAt > 0 && Date.now() - resumedAt < RESUME_WINDOW_MS;
+    const reconnect = () => {
+      reconnected = true;
+      term.write(`\r\n${dim(tRef.current("ssh.reconnecting"))}\r\n`);
+      start();
+    };
+    const onVisibility = () => {
+      if (document.hidden) {
+        hiddenAt = Date.now();
+        return;
+      }
+      if (!hiddenAt || Date.now() - hiddenAt < AWAY_MS) return;
+      resumedAt = Date.now();
+      reconnected = false;
+      if (exited && tabRef.current.kind === "ssh" && isIOS) reconnect();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
     term.onData((data) => {
       if (exited) {
@@ -110,7 +146,7 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
         }
         return;
       }
-      backend.write(applyCtrl(data));
+      backend.write(applyTouchModifiers(data));
     });
     term.onResize(({ cols, rows }) => backend.resize(cols, rows));
 
@@ -173,6 +209,7 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
 
     return () => {
       disposed = true;
+      document.removeEventListener("visibilitychange", onVisibility);
       unregister();
       cancelAnimationFrame(frame);
       observer.disconnect();
@@ -195,6 +232,40 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
     term.options.fontSize = fontSize;
     fitRef.current?.fit();
   }, [fontSize]);
+
+  useEffect(() => {
+    if (termRef.current) termRef.current.options.screenReaderMode = screenReader;
+  }, [screenReader]);
+
+  // Two fingers pinching the terminal change its font size (touch screens), as in a browser.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    let pinch: { distance: number; size: number } | null = null;
+    const spread = (e: TouchEvent) => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) pinch = { distance: spread(e), size: useSettings.getState().fontSize };
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();
+      const size = Math.round(Math.min(MAX_FONT, Math.max(MIN_FONT, pinch.size * (spread(e) / pinch.distance))));
+      if (size !== useSettings.getState().fontSize) useSettings.getState().update({ fontSize: size });
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) pinch = null;
+    };
+    container.addEventListener("touchstart", onStart, { passive: true });
+    container.addEventListener("touchmove", onMove, { passive: false });
+    container.addEventListener("touchend", onEnd);
+    container.addEventListener("touchcancel", onEnd);
+    return () => {
+      container.removeEventListener("touchstart", onStart);
+      container.removeEventListener("touchmove", onMove);
+      container.removeEventListener("touchend", onEnd);
+      container.removeEventListener("touchcancel", onEnd);
+    };
+  }, []);
 
   useEffect(() => {
     if (!active) return;

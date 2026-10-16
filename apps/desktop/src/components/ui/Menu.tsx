@@ -111,7 +111,7 @@ export function Menu({ anchor, entries, onClose, className }: MenuProps) {
               entry.onSelect();
             }}
             className={cn(
-              "v2-nav-link flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left outline-none focus-visible:bg-muted",
+              "v2-nav-link flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left outline-none focus-visible:bg-muted touch:py-3",
               entry.danger && "hover:!text-red focus-visible:!text-red",
             )}
           >

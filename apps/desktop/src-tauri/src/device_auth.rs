@@ -49,3 +49,9 @@ pub async fn confirm_owner(reason: String) -> Result<(), String> {
 pub async fn confirm_owner(_reason: String) -> Result<(), String> {
     Ok(())
 }
+
+/** The app lock: the owner confirms with Face ID, Touch ID or the device password. */
+#[tauri::command]
+pub async fn device_unlock(reason: String) -> Result<(), String> {
+    confirm_owner(reason).await
+}

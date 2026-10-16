@@ -153,7 +153,7 @@ export function KnownHostsView() {
                         e.stopPropagation();
                         setPending({ kind: "remove", entries: [entry] });
                       }}
-                      className="invisible cursor-pointer rounded p-1 text-fg-muted hover:bg-muted hover:text-red group-hover:visible"
+                      className="invisible cursor-pointer rounded p-1 text-fg-muted hover:bg-muted hover:text-red group-hover:visible touch:visible"
                       title={t("sidebar.delete")}
                       aria-label={t("sidebar.delete")}
                     >
