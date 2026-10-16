@@ -1,0 +1,22 @@
+[workspace]
+resolver = "3"
+members = ["apps/desktop/src-tauri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "FSL-1.1-ALv2"
+authors = ["Hostealo"]
+repository = "https://github.com/hostealo/hostealo-terminal"
+
+# https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true
+
+# Local fixes to third-party crates; each directory explains its patch in PATCHED.md.
+[patch.crates-io]
+ironrdp-rdpsnd = { path = "crates/patched/ironrdp-rdpsnd" }

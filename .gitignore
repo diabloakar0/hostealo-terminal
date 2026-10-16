@@ -1,0 +1,20 @@
+# Dependencies & build output
+node_modules
+dist
+dist-ssr
+/target
+*.local
+
+# Tauri generated
+apps/desktop/src-tauri/gen/schemas
+
+# Logs
+*.log
+
+# Editors / OS
+.idea
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.sw?
+website/terminal/public/terminal/demo/

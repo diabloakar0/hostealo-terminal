@@ -1,0 +1,12 @@
+Hostealo Terminal
+Copyright 2026 Hostealo
+
+This product is licensed under the Functional Source License, Version 1.1,
+ALv2 Future License (FSL-1.1-ALv2, see LICENSE). Each version becomes
+available under the Apache License, Version 2.0 two years after its release.
+
+The "Hostealo" name and the Hostealo logo are trademarks of Hostealo and are
+not licensed under the FSL or the Apache License. See TRADEMARKS.md.
+
+crates/patched/ironrdp-rdpsnd is a modified copy of the ironrdp-rdpsnd crate
+(Devolutions, MIT OR Apache-2.0) and stays under its own license.

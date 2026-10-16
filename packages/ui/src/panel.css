@@ -1,0 +1,62 @@
+/*
+ * Navigation components of the client panel v2 sidebar, ported 1:1 (same class names) from
+ * my.hostealo.com public/assets/css/v2/ui-v2.css so both apps stay in step.
+ * Import after tokens.css.
+ */
+
+/* Shell: the content area is an inset card next to the sidebar */
+.v2-shell-main { background: var(--bg-card); border: 1px solid var(--bg-border); border-radius: 0.875rem; box-shadow: var(--shadow-sm); }
+
+/* Links */
+.v2-nav-link { color: var(--text-secondary); }
+.v2-nav-link:hover { background: var(--muted); color: var(--text-primary); }
+.v2-nav-link[aria-current="page"] { background: var(--bg-card); color: var(--text-primary); box-shadow: var(--shadow-sm), 0 0 0 1px var(--bg-border); font-weight: 500; }
+.v2-nav-parent[data-section-active] { color: var(--text-primary); font-weight: 500; }
+.v2-nav-child { color: var(--text-muted); }
+.v2-nav-child:hover { color: var(--text-primary); }
+.v2-nav-child[aria-current="page"] { color: var(--text-primary); }
+.v2-nav-leaf { color: var(--text-muted); }
+.v2-nav-leaf:hover { color: var(--text-primary); }
+.v2-nav-leaf[aria-current="page"] { color: var(--text-primary); }
+
+/* Counters */
+.v2-count { background: var(--muted); color: var(--text-secondary); }
+.v2-count-alert { background: rgba(220, 38, 38, 0.1); color: var(--red); }
+.v2-count-info { background: var(--badge-bg); color: var(--accent); }
+.v2-count-warn { background: rgba(217, 119, 6, 0.12); color: var(--amber); }
+
+/* Segmented control (theme / language) */
+.v2-seg { background: var(--muted); }
+.v2-seg > * { color: var(--text-muted); }
+.v2-seg > *:hover { color: var(--text-primary); }
+.v2-seg > .is-on { background: var(--bg-card); color: var(--text-primary); box-shadow: var(--shadow-sm), 0 0 0 1px var(--bg-border); }
+
+/* Tree guides: ├ └ connectors drawn with pseudo-elements; the active child gets an accent segment */
+.v2-tree { --tree-line: color-mix(in srgb, var(--text-muted) 38%, var(--sidebar-bg)); --tree-y: 14px; position: relative; margin: 2px 0 0 15.5px; padding: 0; list-style: none; }
+.v2-tree > li { position: relative; padding-left: 12px; }
+.v2-tree > li + li { margin-top: 2px; }
+.v2-tree > li::before { content: ''; position: absolute; left: 0; top: -4px; bottom: 0; width: 1px; background: var(--tree-line); }
+.v2-tree > li:first-child::before { top: -2px; }
+.v2-tree > li::after { content: ''; position: absolute; left: 0; top: var(--tree-y); width: 9px; height: 1px; background: var(--tree-line); }
+.v2-tree > li:last-child::before { bottom: auto; height: calc(var(--tree-y) + 4px); width: 9px; background: none; border-left: 1px solid var(--tree-line); border-bottom: 1px solid var(--tree-line); border-bottom-left-radius: 6px; }
+.v2-tree > li:first-child:last-child::before { height: calc(var(--tree-y) + 2px); }
+.v2-tree > li:last-child::after { display: none; }
+.v2-tree > li.is-active::before { background: linear-gradient(var(--accent), var(--accent)) top left / 1px calc(var(--tree-y) + 4px) no-repeat, var(--tree-line); }
+.v2-tree > li.is-active::after { background: var(--accent); }
+.v2-tree > li.is-active:last-child::before { background: none; border-color: var(--accent); }
+.v2-tree-sm { --tree-y: 12px; margin-left: 9.5px; }
+.v2-tree-sm > li { padding-left: 10px; }
+.v2-tree-toggle { color: var(--text-muted); }
+.v2-tree-toggle:hover { background: var(--muted); color: var(--text-primary); }
+
+/* Status dots */
+.v2-dot { display: inline-block; width: 7px; height: 7px; border-radius: 9999px; flex-shrink: 0; }
+.v2-dot-sm { width: 6px; height: 6px; }
+.v2-dot-red { background: var(--red); box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.16); }
+.v2-dot-amber { background: var(--amber); box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.16); }
+.v2-dot-info { background: var(--accent); box-shadow: 0 0 0 2px rgba(83, 80, 242, 0.16); }
+.v2-dot-green { background: var(--green); box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.16); }
+.v2-dot-grey { background: var(--text-muted); opacity: 0.6; }
+
+/* Dropdown menus */
+.v2-menu { background: var(--dropdown-bg); border: 1px solid var(--bg-border); box-shadow: var(--shadow-md); }

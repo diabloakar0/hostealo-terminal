@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Device sync: finding your other devices on the local network (Bonjour). -->
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>Hostealo Terminal busca tus otros dispositivos en la red local para sincronizar tus servidores, sin pasar por internet.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_hostealo-sync._tcp</string>
+  </array>
+</dict>
+</plist>

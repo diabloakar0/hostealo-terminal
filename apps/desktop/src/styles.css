@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import "@hostealo/ui/fonts.css";
+@import "@hostealo/ui/tokens.css";
+@import "@hostealo/ui/panel.css";
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Desktop app chrome: no text selection outside inputs and the terminal (xterm handles its own). */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}

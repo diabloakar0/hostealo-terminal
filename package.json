@@ -1,0 +1,15 @@
+{
+  "name": "hostealo-terminal",
+  "private": true,
+  "license": "FSL-1.1-ALv2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run tauri dev -w @hostealo-terminal/desktop",
+    "build": "npm run tauri build -w @hostealo-terminal/desktop",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test --workspaces --if-present && cargo test"
+  }
+}

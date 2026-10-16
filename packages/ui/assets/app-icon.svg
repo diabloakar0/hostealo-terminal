@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- macOS-style squircle-ish tile with the panel's logo background (#09090b) -->
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="#09090b"/>
+  <rect x="100.5" y="100.5" width="823" height="823" rx="183.5" fill="none" stroke="#27272a" stroke-width="1"/>
+  <g transform="translate(320 317) scale(9.716)" fill="#ffffff">
+    <path d="M13.1762 0H0V13.335H13.1762V0Z"/>
+    <path d="M39.5239 26.665H26.3477V40H39.5239V26.665Z"/>
+    <path d="M39.5239 0H26.3477V13.335H13.1762L0 26.665V40H13.1762V26.665H26.3477L39.5239 13.335V0Z"/>
+  </g>
+</svg>

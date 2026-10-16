@@ -1,0 +1,83 @@
+[package]
+name = "hostealo-terminal"
+description = "Hostealo Terminal: SSH, SFTP, FTP and RDP client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+# The `_lib` suffix avoids a name clash between the lib and bin targets on Windows
+# (https://github.com/rust-lang/cargo/issues/8519).
+name = "hostealo_terminal_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sysinfo = "0.37"
+tauri-plugin-opener = "2"
+tokio = { version = "1", features = ["sync", "macros", "time", "io-util", "net", "rt", "process"] }
+anyhow = "1.0.104"
+russh = "0.64"
+keyring = "4.2"
+uuid = { version = "1", features = ["v4"] }
+tauri-plugin-dialog = "2"
+# Alerts about connected servers (disk full, connection lost...) when the app is in the background.
+tauri-plugin-notification = "2"
+hmac = "0.13"
+sha1 = "0.11"
+data-encoding = "2"
+russh-sftp = "3"
+rand = "0.10"
+suppaftp = { version = "12", features = ["tokio-rustls-aws-lc-rs"] }
+rustls-native-certs = "0.8"
+sha2 = "0.11"
+tokio-rustls = "0.26"
+# IronRDP 0.13 is the newest release whose crypto dependencies (picky/sspi) can share one build
+# with russh 0.64; later IronRDP versions pin pre-release RustCrypto crates that clash with it.
+ironrdp = { version = "0.13", features = ["connector", "session", "graphics", "input", "pdu", "dvc", "displaycontrol", "svc", "cliprdr", "rdpsnd", "rdpdr"] }
+ironrdp-tokio = "0.7"
+# Not used directly: pins the NLA stack (sspi 0.16) to the picky release it was built against.
+# Newer picky release candidates changed their RSA API and break sspi 0.16.
+picky = { version = "=7.0.0-rc.17", default-features = false }
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs", "std", "tls12"] }
+# Device sync over the local network: discovery (Bonjour/mDNS) and the crypto rustls already uses.
+mdns-sd = "0.21"
+aws-lc-rs = "1.18"
+# Backup files: the key comes from the user's passphrase.
+argon2 = "0.5"
+# The AI assistant's HTTPS requests (same TLS stack: rustls with aws-lc-rs).
+roxmltree = "0.20"
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "json", "http2", "system-proxy"] }
+x509-cert = "0.2"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# A local shell is desktop-only: iOS does not allow spawning processes.
+[target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
+portable-pty = "0.9"
+# Plays remote desktop audio on the local speakers (CoreAudio, WASAPI, ALSA/PulseAudio).
+# Without the Opus codec (it needs the C libopus to build): servers send PCM instead.
+ironrdp-rdpsnd-native = { version = "0.4", default-features = false }
+# The OS clipboard (text, images and file lists), shared with remote desktop sessions.
+arboard = { version = "3.7", default-features = false, features = ["image-data"] }
+
+# The clipboard change counters, so the RDP clipboard notices copies without reading them.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSPasteboard"] }
+# Touch ID or the Mac password before showing a saved password.
+objc2-local-authentication = { version = "0.3", default-features = false, features = ["std", "LAContext", "LAPublicDefines", "block2"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSError"] }
+block2 = "0.6"
+objc2 = "0.6"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_System_DataExchange"] }

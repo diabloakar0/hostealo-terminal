@@ -1,0 +1,26 @@
+{
+  "name": "@hostealo/ui",
+  "version": "0.1.0",
+  "private": true,
+  "license": "FSL-1.1-ALv2",
+  "type": "module",
+  "description": "Hostealo design tokens, fonts and shared React components (mirrors the client panel v2).",
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./fonts.css": "./src/fonts.css",
+    "./terminal-themes": "./src/terminal-themes.ts",
+    "./cn": "./src/cn.ts",
+    "./logo-mark.svg": "./assets/logo-mark.svg",
+    "./host-colors": "./src/host-colors.ts",
+    "./panel.css": "./src/panel.css",
+    "./os-icons": "./src/os-icons.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "^5.2.6",
+    "@fontsource-variable/geist-mono": "^5.2.6",
+    "@fontsource-variable/inter": "^5.2.6",
+    "clsx": "^2.1.1",
+    "simple-icons": "^16.33.0",
+    "tailwind-merge": "^3.5.0"
+  }
+}
