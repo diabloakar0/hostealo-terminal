@@ -17,4 +17,7 @@ apps/desktop/src-tauri/gen/schemas
 !.vscode/extensions.json
 .DS_Store
 *.sw?
-website/terminal/public/terminal/demo/
+
+
+# Hostealo's own website material (kept locally, not part of the app)
+/website/

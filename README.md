@@ -240,7 +240,7 @@ With `npm run dev` running:
   screenshots (scenes in `apps/desktop/src/dev/preview.ts`).
 - `http://localhost:1420/demo.html`: the interactive demo, with a simulated shell, files and
   assistant (`apps/desktop/src/dev/demo.ts`, `shell.ts`; `?lang=en`). `npm run build:demo -w
-  @hostealo-terminal/desktop` builds it as static files for the website.
+  @hostealo-terminal/desktop` builds it as static files.
 
 | Part | Technology |
 | --- | --- |
@@ -255,7 +255,6 @@ apps/desktop/          The app
   src/dev/             UI preview and the website demo (mocked backend)
   src-tauri/src/       Rust core: ssh/, rdp*.rs, ftp.rs, ai/, sync.rs, hostealo.rs, importer/...
 packages/ui/           @hostealo/ui: design tokens, fonts, terminal themes, logos
-website/terminal/      The product page for hostealo.es
 ```
 
 </details>
