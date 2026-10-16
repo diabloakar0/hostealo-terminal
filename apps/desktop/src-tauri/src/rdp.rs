@@ -269,7 +269,7 @@ async fn connect(
     };
     let mut connector = match &target.shared_folder {
         Some(folder) => {
-            let computer = sysinfo::System::host_name().unwrap_or_else(|| CLIENT_NAME.to_string());
+            let computer = crate::device::host_name().unwrap_or_else(|| CLIENT_NAME.to_string());
             connector.with_static_channel(
                 Rdpdr::new(Box::new(DriveBackend::new(folder.clone())), computer)
                     .with_drives(Some(vec![(DRIVE_ID, DRIVE_NAME.to_string())])),
@@ -674,8 +674,7 @@ async fn active_session(
     }
 }
 
-/// Plays remote audio on this computer's speakers, telling the UI when it starts (or fails).
-#[cfg(desktop)]
+/// Plays remote audio on this device's speakers, telling the UI when it starts (or fails).
 fn native_audio(
     on_display: &Channel<DisplayEvent>,
 ) -> impl Fn() -> Option<Box<dyn RdpsndClientHandler>> + use<> {
@@ -698,14 +697,6 @@ fn native_audio(
             }))) as Box<dyn RdpsndClientHandler>,
         )
     }
-}
-
-/// No audio backend on mobile yet.
-#[cfg(mobile)]
-fn native_audio(
-    _on_display: &Channel<DisplayEvent>,
-) -> impl Fn() -> Option<Box<dyn RdpsndClientHandler>> + use<> {
-    || None
 }
 
 #[allow(clippy::too_many_arguments)]

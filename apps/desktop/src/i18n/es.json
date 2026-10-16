@@ -25,17 +25,21 @@
     "tools": "Herramientas",
     "sftp": "Explorar archivos (SFTP)",
     "filter": "Filtrar servidores",
-    "noMatches": "Ningún servidor coincide."
+    "noMatches": "Ningún servidor coincide.",
+    "open": "Abrir el menú"
   },
   "tabs": {
     "new": "Nueva terminal local",
     "close": "Cerrar pestaña",
-    "local": "Local"
+    "local": "Local",
+    "openServer": "Abrir un servidor",
+    "openServerHint": "Elige uno de la barra lateral o búscalo."
   },
   "terminal": {
     "exited": "El proceso terminó con código {{code}}. Pulsa Intro para reiniciar.",
     "exitedUnknown": "El proceso terminó. Pulsa Intro para reiniciar.",
-    "spawnFailed": "No se pudo iniciar la shell: {{error}}"
+    "spawnFailed": "No se pudo iniciar la shell: {{error}}",
+    "keys": "Teclas de la terminal"
   },
   "monitor": {
     "cpu": "CPU",

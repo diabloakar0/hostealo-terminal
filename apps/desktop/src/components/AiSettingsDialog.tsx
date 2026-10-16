@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
 
 import { aiModels, aiSettingsSave, type AiEffort, type AiProvider, type AiSettings } from "../lib/ipc";
+import { hasLocalShell } from "../lib/format";
 import { useAi } from "../store/ai";
 import { Button } from "./ui/Button";
 import { Field, Input, Segmented } from "./ui/Form";
@@ -124,7 +125,8 @@ export function AiSettingsDialog({ onClose }: { onClose: () => void }) {
             value={provider}
             onChange={switchProvider}
             options={[
-              { value: "claudeCode", label: "Claude Code" },
+              // Claude Code is a program the app starts, which iOS does not allow.
+              ...(hasLocalShell ? [{ value: "claudeCode" as const, label: "Claude Code" }] : []),
               { value: "anthropic", label: t("ai.form.claudeApi") },
               { value: "openai", label: "OpenAI" },
               { value: "ollama", label: "Ollama" },

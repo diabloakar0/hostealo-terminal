@@ -12,6 +12,8 @@ export interface TerminalHandle {
   /** Types `text` and presses Enter. */
   run: (text: string) => void;
   focus: () => void;
+  /** Sends raw input, as if typed (the touch key bar: Esc, Tab, arrows...). */
+  send: (data: string) => void;
   /** Runs a command outside the shell and returns its output (agent mode, after approval). */
   exec: (command: string, timeoutSecs: number) => Promise<ExecOutput>;
 }

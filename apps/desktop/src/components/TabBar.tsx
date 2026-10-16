@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { Activity, Fingerprint, FolderOpen, KeyRound, Plus, Search, Sparkles, SquareTerminal, X } from "lucide-react";
+import { Activity, Fingerprint, FolderOpen, KeyRound, Menu, Plus, Search, Sparkles, SquareTerminal, X } from "lucide-react";
 import { cn } from "@hostealo/ui/cn";
 
-import { isMac } from "../lib/format";
+import { hasLocalShell, isMac } from "../lib/format";
 import { useAi } from "../store/ai";
 import { useHosts } from "../store/hosts";
 import { useHostAccent } from "../hooks/useHostColor";
@@ -50,6 +50,10 @@ export function TabBar() {
 
   return (
     <div data-tauri-drag-region className="flex h-11 shrink-0 items-center gap-1 border-b border-border px-2">
+      {/* Phone-sized screens: the sidebar is a drawer behind this button. */}
+      <Button variant="ghost" size="icon" className="md:hidden" onClick={() => useUi.getState().setSidebarOpen(true)} aria-label={t("sidebar.open")}>
+        <Menu className="size-4" />
+      </Button>
       <div role="tablist" className="flex min-w-0 items-center gap-1 overflow-x-auto">
         {tabs.map((tab) => (
           <TabItem
@@ -62,7 +66,14 @@ export function TabBar() {
           />
         ))}
       </div>
-      <Button variant="ghost" size="icon" onClick={openLocal} title={t("tabs.new")} aria-label={t("tabs.new")}>
+      {/* Without a local shell (iOS), + opens the search to pick a server. */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={hasLocalShell ? openLocal : () => useUi.getState().setPaletteOpen(true)}
+        title={t(hasLocalShell ? "tabs.new" : "tabs.openServer")}
+        aria-label={t(hasLocalShell ? "tabs.new" : "tabs.openServer")}
+      >
         <Plus className="size-4" />
       </Button>
       <div data-tauri-drag-region className="h-full flex-1" />
@@ -78,7 +89,7 @@ export function TabBar() {
       {(activeTab?.kind === "ssh" || activeTab?.kind === "rdp") && activeTab.hostId && (
         <Button size="sm" onClick={() => openSftp(activeTab.hostId!)} title={t("sidebar.sftp")}>
           <FolderOpen className="size-3.5" />
-          SFTP
+          <span className="max-md:hidden">SFTP</span>
         </Button>
       )}
       {activeTab?.kind === "rdp" && <RdpToolbar tab={activeTab} />}
@@ -91,7 +102,7 @@ export function TabBar() {
         aria-pressed={assistantOpen}
       >
         <Sparkles className="size-3.5 text-accent" />
-        {t("ai.short")}
+        <span className="max-md:hidden">{t("ai.short")}</span>
       </Button>
     </div>
   );

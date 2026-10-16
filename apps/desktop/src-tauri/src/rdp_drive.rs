@@ -455,14 +455,7 @@ impl DriveBackend {
     ) -> ClientDriveQueryVolumeInformationResponse {
         let io = req.device_io_request.clone();
         // Free space of the disk holding the shared folder.
-        let disks = sysinfo::Disks::new_with_refreshed_list();
-        let disk = disks
-            .iter()
-            .filter(|d| self.root.starts_with(d.mount_point()))
-            .max_by_key(|d| d.mount_point().as_os_str().len());
-        let (total, free) = disk.map_or((1 << 40, 1 << 39), |d| {
-            (d.total_space(), d.available_space())
-        });
+        let (total, free) = crate::device::disk_space(&self.root).unwrap_or((1 << 40, 1 << 39));
         const BYTES_PER_SECTOR: u32 = 512;
         const SECTORS_PER_UNIT: u32 = 8;
         let unit = u64::from(BYTES_PER_SECTOR * SECTORS_PER_UNIT);

@@ -15,6 +15,7 @@ use serde_json::Value;
 use tauri::{AppHandle, State};
 
 use crate::hosts::{AuthMethod, Host, HostStore, HostealoLink, HostsData, Protocol};
+use crate::keystore;
 use crate::secrets::{self, SecretKind};
 
 const API: &str = "https://my.hostealo.es/api/v1";
@@ -24,14 +25,14 @@ const TIMEOUT: Duration = Duration::from_secs(20);
 const VPS_FOLDER: &str = "Hostealo/VPS";
 const DEDICATED_FOLDER: &str = "Hostealo/Dedicados";
 
-fn key_entry() -> Result<keyring::Entry, String> {
-    keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT).map_err(|e| e.to_string())
+fn key_entry() -> Result<keystore::Entry, String> {
+    keystore::entry(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT).map_err(|e| e.to_string())
 }
 
 fn stored_key() -> Result<Option<String>, String> {
     match key_entry()?.get_password() {
         Ok(key) => Ok(Some(key)),
-        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(keystore::Error::NoEntry) => Ok(None),
         Err(e) => Err(format!("could not read from the system keychain: {e}")),
     }
 }
@@ -309,7 +310,7 @@ pub async fn hostealo_connect(api_key: String) -> Result<Account, String> {
 #[tauri::command]
 pub fn hostealo_disconnect() -> Result<(), String> {
     match key_entry()?.delete_credential() {
-        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+        Ok(()) | Err(keystore::Error::NoEntry) => Ok(()),
         Err(e) => Err(format!("could not delete from the system keychain: {e}")),
     }
 }

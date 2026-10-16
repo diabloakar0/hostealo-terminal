@@ -25,17 +25,21 @@
     "tools": "Tools",
     "sftp": "Browse files (SFTP)",
     "filter": "Filter hosts",
-    "noMatches": "No hosts match."
+    "noMatches": "No hosts match.",
+    "open": "Open the menu"
   },
   "tabs": {
     "new": "New local terminal",
     "close": "Close tab",
-    "local": "Local"
+    "local": "Local",
+    "openServer": "Open a server",
+    "openServerHint": "Pick one from the sidebar or search for it."
   },
   "terminal": {
     "exited": "Process exited with code {{code}}. Press Enter to restart.",
     "exitedUnknown": "Process exited. Press Enter to restart.",
-    "spawnFailed": "Could not start the shell: {{error}}"
+    "spawnFailed": "Could not start the shell: {{error}}",
+    "keys": "Terminal keys"
   },
   "monitor": {
     "cpu": "CPU",

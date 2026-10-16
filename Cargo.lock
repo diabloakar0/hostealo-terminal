@@ -2631,6 +2631,7 @@ name = "hostealo-terminal"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "apple-native-keyring-store",
  "arboard",
  "argon2 0.5.3",
  "aws-lc-rs",
@@ -2638,9 +2639,12 @@ dependencies = [
  "cpal",
  "data-encoding",
  "hmac 0.13.0",
+ "if-addrs",
  "ironrdp",
  "ironrdp-tokio",
  "keyring",
+ "keyring-core",
+ "libc",
  "mdns-sd",
  "objc2",
  "objc2-app-kit",

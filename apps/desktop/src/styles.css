@@ -6,8 +6,15 @@
 html,
 body,
 #root {
-  height: 100%;
+  /* --app-height: the part of the screen the on-screen keyboard leaves (iOS, see main.tsx). */
+  height: var(--app-height, 100%);
   overflow: hidden;
+}
+
+/* iPhone and iPad: keep clear of the notch, the rounded corners and the home bar. Zero on desktop. */
+#root {
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* Desktop app chrome: no text selection outside inputs and the terminal (xterm handles its own). */

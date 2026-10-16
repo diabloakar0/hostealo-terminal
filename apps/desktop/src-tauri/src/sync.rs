@@ -446,7 +446,7 @@ impl Channel2 {
 // The exchange
 
 fn device_name() -> String {
-    sysinfo::System::host_name().unwrap_or_else(|| "Hostealo Terminal".into())
+    crate::device::host_name().unwrap_or_else(|| "Hostealo Terminal".into())
 }
 
 /// Where a side reads and writes its hosts and secrets (the app's store and the keychain, or
@@ -873,10 +873,8 @@ fn spawn_session(
 
 /// This computer's addresses on the local network (for connecting by hand).
 fn local_addresses(port: u16) -> Vec<String> {
-    let mut out: Vec<String> = sysinfo::Networks::new_with_refreshed_list()
-        .values()
-        .flat_map(|network| network.ip_networks().iter().map(|ip| ip.addr))
-        .filter(|ip| ip.is_ipv4() && !ip.is_loopback())
+    let mut out: Vec<String> = crate::device::local_ipv4()
+        .into_iter()
         .map(|ip| format!("{ip}:{port}"))
         .collect();
     out.sort();

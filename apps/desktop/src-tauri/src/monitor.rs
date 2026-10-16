@@ -1,13 +1,16 @@
 //! Resource monitor shown in the status bar under every session.
 //!
-//! `ResourceSnapshot` is the shared model: the local monitor fills it from `sysinfo`, and SSH
+//! `ResourceSnapshot` is the shared model: the local monitor (desktop only) fills it from `sysinfo`, and SSH
 //! sessions will fill it by reading `/proc` over a side exec channel, so the UI does not care
 //! where the numbers came from.
 
+#[cfg(desktop)]
 use std::sync::Mutex;
+#[cfg(desktop)]
 use std::time::Instant;
 
 use serde::Serialize;
+#[cfg(desktop)]
 use sysinfo::{CpuRefreshKind, Disks, MemoryRefreshKind, Networks, RefreshKind, System};
 
 #[derive(Debug, Clone, Serialize)]
@@ -38,6 +41,7 @@ pub struct ResourceSnapshot {
     pub uptime_secs: u64,
 }
 
+#[cfg(desktop)]
 pub struct LocalMonitor {
     system: System,
     disks: Disks,
@@ -45,6 +49,7 @@ pub struct LocalMonitor {
     last_net_refresh: Instant,
 }
 
+#[cfg(desktop)]
 impl LocalMonitor {
     pub fn new() -> Self {
         let system = System::new_with_specifics(
@@ -122,14 +127,17 @@ impl LocalMonitor {
     }
 }
 
+#[cfg(desktop)]
 fn is_loopback(interface: &str) -> bool {
     interface == "lo" || interface.starts_with("lo0") || interface.starts_with("Loopback")
 }
 
+#[cfg(desktop)]
 fn is_root_mount(mount: &str) -> bool {
     mount == "/" || mount.eq_ignore_ascii_case("C:\\")
 }
 
+#[cfg(desktop)]
 fn is_system_internal_mount(mount: &str) -> bool {
     const HIDDEN: &[&str] = &[
         "/System/Volumes/",
@@ -142,10 +150,29 @@ fn is_system_internal_mount(mount: &str) -> bool {
     HIDDEN.iter().any(|prefix| mount.starts_with(prefix))
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub fn monitor_local(
     monitor: tauri::State<'_, Mutex<LocalMonitor>>,
 ) -> Result<ResourceSnapshot, String> {
     let mut monitor = monitor.lock().map_err(|e| e.to_string())?;
     Ok(monitor.snapshot())
+}
+
+// Phones and tablets have no local terminal, so there is no local machine to monitor.
+
+#[cfg(mobile)]
+pub struct LocalMonitor;
+
+#[cfg(mobile)]
+impl LocalMonitor {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub fn monitor_local() -> Result<ResourceSnapshot, String> {
+    Err("this device has no local terminal".into())
 }

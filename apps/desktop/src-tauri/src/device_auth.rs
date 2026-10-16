@@ -1,8 +1,9 @@
-//! Confirms that the person at the computer is its owner (Touch ID or the account password)
-//! before a saved secret is shown. macOS only for now; elsewhere the OS keychain is the gate.
+//! Confirms that the person at the device is its owner before a saved secret is shown: Touch ID
+//! or the account password on a Mac, Face ID, Touch ID or the passcode on an iPhone or iPad.
+//! Elsewhere the OS keychain is the only gate.
 
 /// `Err("cancelled")` when the user dismisses the dialog.
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 pub async fn confirm_owner(reason: String) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || {
         use block2::RcBlock;
@@ -13,7 +14,7 @@ pub async fn confirm_owner(reason: String) -> Result<(), String> {
         let policy = LAPolicy::DeviceOwnerAuthentication;
         // The context lives on this thread until the answer comes (it is not Send).
         let context = unsafe { LAContext::new() };
-        // No Touch ID and no account password to ask for: the keychain is the only gate.
+        // No biometrics and no password or passcode to ask for: the keychain is the only gate.
         if unsafe { context.canEvaluatePolicy_error(policy) }.is_err() {
             return Ok(());
         }
@@ -44,7 +45,7 @@ pub async fn confirm_owner(reason: String) -> Result<(), String> {
     .map_err(|e| e.to_string())?
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "ios")))]
 pub async fn confirm_owner(_reason: String) -> Result<(), String> {
     Ok(())
 }

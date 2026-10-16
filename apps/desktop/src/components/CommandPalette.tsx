@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@hostealo/ui/cn";
 
-import { isMac } from "../lib/format";
+import { hasLocalShell, isMac } from "../lib/format";
 import { matches } from "../lib/search";
 import type { Host } from "../lib/ipc";
 import { getTerminal } from "../lib/terminals";
@@ -120,7 +120,7 @@ function Palette({ onOpenHost, onNewHost, onOpenSettings, onClose }: CommandPale
       })),
       ...(
         [
-          ["newLocal", <SquareTerminal />, t("palette.newLocal"), () => useTabs.getState().openLocal()],
+          ...(hasLocalShell ? [["newLocal", <SquareTerminal />, t("palette.newLocal"), () => useTabs.getState().openLocal()] as const] : []),
           ["newHost", <Plus />, t("sidebar.newHost"), onNewHost],
           ["status", <Activity />, t("status.title"), () => useTabs.getState().openPage("status")],
           ["keys", <KeyRound />, t("keys.title"), () => useTabs.getState().openPage("keys")],

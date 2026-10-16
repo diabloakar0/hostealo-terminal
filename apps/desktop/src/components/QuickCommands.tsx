@@ -51,7 +51,7 @@ export function QuickCommandsButton() {
         aria-pressed={open}
       >
         <Zap className="size-3.5 text-accent" />
-        {t("snippets.short")}
+        <span className="max-md:hidden">{t("snippets.short")}</span>
       </Button>
       {open && <QuickCommandsPanel anchor={button.current} onClose={() => useQuickCommands.getState().setOpen(false)} />}
     </div>

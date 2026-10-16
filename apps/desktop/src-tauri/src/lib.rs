@@ -1,10 +1,12 @@
 mod ai;
+mod device;
 mod device_auth;
 mod exec;
 mod ftp;
 mod hostealo;
 mod hosts;
 mod importer;
+mod keystore;
 mod known_hosts_admin;
 mod local_fs;
 mod monitor;

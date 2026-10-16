@@ -20,7 +20,6 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sysinfo = "0.37"
 tauri-plugin-opener = "2"
 tokio = { version = "1", features = ["sync", "macros", "time", "io-util", "net", "rt", "process"] }
 anyhow = "1.0.104"
@@ -43,6 +42,9 @@ tokio-rustls = "0.26"
 # with russh 0.64; later IronRDP versions pin pre-release RustCrypto crates that clash with it.
 ironrdp = { version = "0.13", features = ["connector", "session", "graphics", "input", "pdu", "dvc", "displaycontrol", "svc", "cliprdr", "rdpsnd", "rdpdr"] }
 ironrdp-tokio = "0.7"
+# Remote desktop sound on this device's speakers (CoreAudio on macOS and iOS, WASAPI,
+# ALSA/PulseAudio; see rdp_audio.rs).
+cpal = "0.16"
 # Not used directly: pins the NLA stack (sspi 0.16) to the picky release it was built against.
 # Newer picky release candidates changed their RSA API and break sspi 0.16.
 picky = { version = "=7.0.0-rc.17", default-features = false }
@@ -64,16 +66,18 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # A local shell is desktop-only: iOS does not allow spawning processes.
 [target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
 portable-pty = "0.9"
-# Plays remote desktop audio on the local speakers (CoreAudio, WASAPI, ALSA/PulseAudio).
-# Remote desktop sound on this computer's speakers (see rdp_audio.rs).
-cpal = "0.16"
+# This computer's resources, name, addresses and disks (device.rs, monitor.rs); it does not
+# build for iOS.
+sysinfo = "0.37"
 # The OS clipboard (text, images and file lists), shared with remote desktop sessions.
 arboard = { version = "3.7", default-features = false, features = ["image-data"] }
 
 # The clipboard change counters, so the RDP clipboard notices copies without reading them.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSPasteboard"] }
-# Touch ID or the Mac password before showing a saved password.
+
+# Touch ID, Face ID or the device password before showing a saved password (device_auth.rs).
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc2-local-authentication = { version = "0.3", default-features = false, features = ["std", "LAContext", "LAPublicDefines", "block2"] }
 objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSError"] }
 block2 = "0.6"
@@ -81,3 +85,12 @@ objc2 = "0.6"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_System_DataExchange"] }
+
+# iOS keychain: `keyring` only picks a credential store on desktop, so on iOS the app sets the
+# "protected data" store itself (see keystore.rs).
+[target.'cfg(target_os = "ios")'.dependencies]
+keyring-core = "1"
+apple-native-keyring-store = { version = "1", features = ["protected"] }
+# What sysinfo answers on desktop (see device.rs).
+libc = "0.2"
+if-addrs = "0.15"

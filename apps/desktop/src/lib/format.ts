@@ -35,3 +35,9 @@ export function usageTone(value: number): "normal" | "warning" | "critical" {
 }
 
 export const isMac = navigator.userAgent.includes("Mac");
+
+/** iPhone and iPad. iPadOS presents itself as a Mac, so the touch screen tells them apart. */
+export const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints > 1);
+
+/** Whether this device can open a shell of its own: iOS does not let apps start processes. */
+export const hasLocalShell = !isIOS;

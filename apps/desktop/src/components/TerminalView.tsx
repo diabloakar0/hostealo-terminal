@@ -14,6 +14,7 @@ import { OutputHighlighter } from "../lib/highlight";
 import { createBackend, type SessionExit } from "../lib/sessions";
 import { matchShortcut } from "../lib/shortcuts";
 import { registerTerminal } from "../lib/terminals";
+import { applyCtrl } from "../lib/touchKeys";
 import { useHostAccent } from "../hooks/useHostColor";
 import { useResolvedTheme } from "../hooks/usePreferences";
 import { useSettings } from "../store/settings";
@@ -109,7 +110,7 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
         }
         return;
       }
-      backend.write(data);
+      backend.write(applyCtrl(data));
     });
     term.onResize(({ cols, rows }) => backend.resize(cols, rows));
 
@@ -138,6 +139,9 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
         if (!exited) backend.write(`${text.replace(/\r?\n/g, "\r")}\r`);
       },
       focus: () => term.focus(),
+      send: (data) => {
+        if (!exited) backend.write(data);
+      },
       exec: (command, timeoutSecs) => backend.exec(command, timeoutSecs),
     });
     term.onTitleChange((title) => useTabs.getState().setTitle(tabRef.current.id, title));

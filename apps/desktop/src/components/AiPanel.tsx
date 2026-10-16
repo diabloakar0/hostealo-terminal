@@ -128,7 +128,7 @@ export function AiPanel() {
     : [t("ai.suggestions.howto"), t("ai.suggestions.firewall")];
 
   return (
-    <aside className="v2-shell-main my-2 mr-2 flex w-[400px] shrink-0 flex-col overflow-hidden" aria-label={t("ai.title")}>
+    <aside className="v2-shell-main my-2 mr-2 flex w-[400px] shrink-0 flex-col overflow-hidden max-md:fixed max-md:inset-0 max-md:z-30 max-md:m-0 max-md:w-auto max-md:rounded-none max-md:border-0 max-md:pt-[env(safe-area-inset-top)] max-md:pb-[env(safe-area-inset-bottom)]" aria-label={t("ai.title")}>
       <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border pl-4 pr-2">
         <Sparkles className="size-4 text-accent" />
         <span className="text-sm font-medium text-fg">{t("ai.title")}</span>

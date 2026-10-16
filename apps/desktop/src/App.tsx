@@ -16,6 +16,7 @@ import { PromptDialog } from "./components/PromptDialog";
 import { useQuickCommands } from "./components/QuickCommands";
 import { CommandPalette } from "./components/CommandPalette";
 import { useUi } from "./store/ui";
+import { useCompact } from "./hooks/useCompact";
 import { ResourceMonitor } from "./components/ResourceBar";
 import { RdpView } from "./components/RdpView";
 import { SettingsDialog } from "./components/SettingsDialog";
@@ -27,7 +28,8 @@ import { Button } from "./components/ui/Button";
 import { useHostAccent } from "./hooks/useHostColor";
 import { useApplyPreferences } from "./hooks/usePreferences";
 import { startAlertWatch } from "./lib/alertWatch";
-import { isMac } from "./lib/format";
+import { hasLocalShell, isIOS, isMac } from "./lib/format";
+import { TouchKeys } from "./components/TouchKeys";
 import type { Host } from "./lib/ipc";
 import { matchShortcut } from "./lib/shortcuts";
 import { useAi } from "./store/ai";
@@ -51,10 +53,13 @@ export default function App() {
   const [hostDialog, setHostDialog] = useState<HostDialogState>(null);
   const [deleting, setDeleting] = useState<Host | null>(null);
   const assistantOpen = useAi((s) => s.open);
+  const compact = useCompact();
+  const sidebarOpen = useUi((s) => s.sidebarOpen);
+  const setSidebarOpen = useUi((s) => s.setSidebarOpen);
 
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
 
-  useEffect(() => startLocalMonitor(), []);
+  useEffect(() => (hasLocalShell ? startLocalMonitor() : undefined), []);
   useEffect(() => startAlertWatch(), []);
   useEffect(() => {
     // The hosts first, then the Hostealo account brings its servers up to date.
@@ -92,7 +97,7 @@ export default function App() {
       const tabs = useTabs.getState();
       switch (shortcut.action) {
         case "newTab":
-          return tabs.openLocal();
+          return hasLocalShell ? tabs.openLocal() : useUi.getState().setPaletteOpen(true);
         case "closeTab":
           return tabs.activeId && tabs.close(tabs.activeId);
         case "selectTab":
@@ -134,20 +139,37 @@ export default function App() {
   const activeHost = activeTab?.kind === "ssh" ? hosts.find((h) => h.id === activeTab.hostId) : undefined;
   const activeAccent = useHostAccent(activeHost?.id ?? null);
 
+  // On a phone the sidebar is a drawer: whatever is picked in it closes it.
+  const fromSidebar =
+    <A extends unknown[]>(action: (...args: A) => void) =>
+    (...args: A) => {
+      if (compact) setSidebarOpen(false);
+      action(...args);
+    };
+  const sidebar = (
+    <Sidebar
+      onNewLocal={fromSidebar(openLocal)}
+      onConnect={fromSidebar(openHost)}
+      onOpenSftp={fromSidebar((host: Host) => openSftp(host.id))}
+      onOpenPage={fromSidebar(openPage)}
+      onNewHost={fromSidebar((folder: string | null) => setHostDialog({ mode: "new", folder }))}
+      onEditHost={fromSidebar((host: Host) => setHostDialog({ mode: "edit", host }))}
+      onDeleteHost={setDeleting}
+      onOpenSettings={fromSidebar(() => setSettingsOpen(true))}
+    />
+  );
+
   return (
     <div className="flex h-full text-fg">
-      <Sidebar
-        onNewLocal={openLocal}
-        onConnect={openHost}
-        onOpenSftp={(host) => openSftp(host.id)}
-        onOpenPage={openPage}
-        onNewHost={(folder) => setHostDialog({ mode: "new", folder })}
-        onEditHost={(host) => setHostDialog({ mode: "edit", host })}
-        onDeleteHost={setDeleting}
-        onOpenSettings={() => setSettingsOpen(true)}
-      />
+      {!compact && sidebar}
+      {compact && sidebarOpen && (
+        <div className="fixed inset-0 z-40 flex" role="dialog" aria-modal="true">
+          <div className="flex h-full w-[85vw] max-w-80 flex-col bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] shadow-xl">{sidebar}</div>
+          <button type="button" className="flex-1 bg-black/40" aria-label={t("common.close")} onClick={() => setSidebarOpen(false)} />
+        </div>
+      )}
 
-      <main className="v2-shell-main my-2 mr-2 flex min-w-0 flex-1 flex-col overflow-hidden">
+      <main className="v2-shell-main flex min-w-0 flex-1 flex-col overflow-hidden max-md:rounded-none! max-md:border-0! md:my-2 md:mr-2">
         <TabBar />
 
         <div className="relative min-h-0 flex-1">
@@ -158,15 +180,25 @@ export default function App() {
             <div className="grid h-full place-items-center">
               <div className="text-center">
                 <SquareTerminal className="mx-auto mb-3 size-8 text-fg-muted" />
-                <Button variant="primary" onClick={openLocal}>
-                  {t("tabs.new")}
-                  <kbd className="text-xs opacity-70">{isMac ? "⌘T" : "Ctrl+Shift+T"}</kbd>
-                </Button>
+                {hasLocalShell ? (
+                  <Button variant="primary" onClick={openLocal}>
+                    {t("tabs.new")}
+                    <kbd className="text-xs opacity-70">{isMac ? "⌘T" : "Ctrl+Shift+T"}</kbd>
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="primary" onClick={() => useUi.getState().setPaletteOpen(true)}>
+                      {t("tabs.openServer")}
+                    </Button>
+                    <p className="mt-2 text-sm text-fg-muted">{t("tabs.openServerHint")}</p>
+                  </>
+                )}
               </div>
             </div>
           )}
         </div>
 
+        {isIOS && activeTab && isTerminalTab(activeTab) && <TouchKeys tabId={activeTab.id} />}
         {activeTab && isTerminalTab(activeTab) && (
           <ResourceMonitor
             entry={monitors[activeTab.kind === "ssh" ? activeTab.id : LOCAL_MONITOR]}

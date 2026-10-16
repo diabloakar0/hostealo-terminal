@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import { hasLocalShell } from "../lib/format";
+
 export type TabKind = "local" | "ssh" | "sftp" | "ftp" | "rdp" | "docker" | "vms" | "keys" | "knownHosts" | "status";
 /** Tabs that show a terminal (the others are pages). */
 export const isTerminalTab = (tab: Tab) => tab.kind === "local" || tab.kind === "ssh";
@@ -53,7 +55,8 @@ function newTab(kind: TabKind, hostId: string | null = null): Tab {
   return { id: crypto.randomUUID(), kind, hostId, title: null, status: remote ? "connecting" : "connected", usedAt: Date.now() };
 }
 
-const first = newTab("local");
+// Desktop opens on a local terminal; iOS has none, so it opens on the list of servers.
+const first = hasLocalShell ? newTab("local") : null;
 
 export const useTabs = create<TabsStore>((set, get) => {
   const add = (tab: Tab) => set((s) => ({ tabs: [...s.tabs, tab], activeId: tab.id }));
@@ -62,10 +65,12 @@ export const useTabs = create<TabsStore>((set, get) => {
     set((s) => ({ tabs: s.tabs.map((t) => (t.id === id ? { ...t, ...changes } : t)) }));
 
   return {
-    tabs: [first],
-    activeId: first.id,
+    tabs: first ? [first] : [],
+    activeId: first?.id ?? null,
 
-    openLocal: () => add(newTab("local")),
+    openLocal: () => {
+      if (hasLocalShell) add(newTab("local"));
+    },
     openSsh: (hostId, initialInput) => add({ ...newTab("ssh", hostId), initialInput }),
     openDocker: (hostId) => {
       const existing = get().tabs.find((t) => t.kind === "docker" && t.hostId === hostId);

@@ -1,0 +1,577 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		06A8637E877ABBE569D757EF /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 323ADC25BFBE989C0AC76B95 /* MetalKit.framework */; };
+		090CE4D3738B52E6724E1F30 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66BF566C5847CCD1ADD4DA09 /* QuartzCore.framework */; };
+		11EA7B069628D879D4A58A06 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 9D69FADC511D59199CB01D8A /* assets */; };
+		1F64A7ABC976BBE0549DCFE6 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 889169AD72208AB252FD41CC /* libapp.a */; };
+		3F9828D2D4E2C07002F70C54 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF4C851241E9EF10067E665E /* UIKit.framework */; };
+		40E32D51F86D44BA95D59787 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26463561F2A8F582A4C0B380 /* Assets.xcassets */; };
+		5F9DA60D0DF4739FC516E337 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CFC2ABA88F9BE57D2CE7DEC /* CoreGraphics.framework */; };
+		6CE34759832C3192624512B3 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A84667BE3BA9C84B8A46287 /* Metal.framework */; };
+		749EA537FFB54BEDB6E419CB /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A4EEC1F177B401D0B8918A6 /* WebKit.framework */; };
+		75904DE80468B982282B7D66 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AACC70F47FABB9024795B856 /* LaunchScreen.storyboard */; };
+		A0B31930630C5C0588D51852 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 926F8F36CA3996198BE622C6 /* main.mm */; };
+		E95DEC6062C1544393EE3CF9 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B386E86FBC29CE179FFC45DD /* Security.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0A808C86A4610FDF8A47987D /* remote.rs */ = {isa = PBXFileReference; path = remote.rs; sourceTree = "<group>"; };
+		0AF26BF3193D341B2D1C1C77 /* royal.rs */ = {isa = PBXFileReference; path = royal.rs; sourceTree = "<group>"; };
+		0D1638668C9502CEB4DBB575 /* hostealo.rs */ = {isa = PBXFileReference; path = hostealo.rs; sourceTree = "<group>"; };
+		0E2361D9430E15E6E4F4186F /* putty.rs */ = {isa = PBXFileReference; path = putty.rs; sourceTree = "<group>"; };
+		101AA6E1DFB957429618298A /* rdp_audio.rs */ = {isa = PBXFileReference; path = rdp_audio.rs; sourceTree = "<group>"; };
+		103FDC1E80B1E72CAE00817E /* rdp.rs */ = {isa = PBXFileReference; path = rdp.rs; sourceTree = "<group>"; };
+		26463561F2A8F582A4C0B380 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		275147C93058D97432794929 /* device.rs */ = {isa = PBXFileReference; path = device.rs; sourceTree = "<group>"; };
+		2C41277237CF4501EB23A62E /* os.rs */ = {isa = PBXFileReference; path = os.rs; sourceTree = "<group>"; };
+		2D6126F3DA4FC1E48A6C3FA0 /* sync.rs */ = {isa = PBXFileReference; path = sync.rs; sourceTree = "<group>"; };
+		2DE0BF4723F608897BAACB1A /* hostealo-terminal_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "hostealo-terminal_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EC3A5146E634A979B265BD0 /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
+		323ADC25BFBE989C0AC76B95 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		32C9E15DF5183D6ACD4F5F4B /* tls.rs */ = {isa = PBXFileReference; path = tls.rs; sourceTree = "<group>"; };
+		38F975D1790C0E9A9F406931 /* ssh_config.rs */ = {isa = PBXFileReference; path = ssh_config.rs; sourceTree = "<group>"; };
+		3A84667BE3BA9C84B8A46287 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		3E4289DEBE018603A3C2665D /* ftp.rs */ = {isa = PBXFileReference; path = ftp.rs; sourceTree = "<group>"; };
+		3E7FA9CC048010039735E608 /* local_fs.rs */ = {isa = PBXFileReference; path = local_fs.rs; sourceTree = "<group>"; };
+		3F517A226668EEADE009178A /* rdp_drive.rs */ = {isa = PBXFileReference; path = rdp_drive.rs; sourceTree = "<group>"; };
+		4533AA7040176F7F1F623F77 /* monitor.rs */ = {isa = PBXFileReference; path = monitor.rs; sourceTree = "<group>"; };
+		4A4EEC1F177B401D0B8918A6 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		4DE6AFED59DD3AC33636755A /* mobaxterm.rs */ = {isa = PBXFileReference; path = mobaxterm.rs; sourceTree = "<group>"; };
+		4EC7F7CEEB3246FC4D7014A1 /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
+		5CFC2ABA88F9BE57D2CE7DEC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		66BF566C5847CCD1ADD4DA09 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		6C1AB0BF7AD4BB5A83F3A39C /* files.rs */ = {isa = PBXFileReference; path = files.rs; sourceTree = "<group>"; };
+		6E69780CDAB67765A1F785FF /* monitor.rs */ = {isa = PBXFileReference; path = monitor.rs; sourceTree = "<group>"; };
+		720E57956353E486865628CE /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
+		793F5BF84E81F6896732FA69 /* device_auth.rs */ = {isa = PBXFileReference; path = device_auth.rs; sourceTree = "<group>"; };
+		7B1A447B6BD2A9A49289381F /* prompts.rs */ = {isa = PBXFileReference; path = prompts.rs; sourceTree = "<group>"; };
+		7E65274A99C1E00E7B876F83 /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		7FB4EDDC30AA9EC3B5965E20 /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
+		80DF8933D239C6ADB96FE60A /* ssh_keys.rs */ = {isa = PBXFileReference; path = ssh_keys.rs; sourceTree = "<group>"; };
+		8442750D6ED07DA9E648BF37 /* dib.rs */ = {isa = PBXFileReference; path = dib.rs; sourceTree = "<group>"; };
+		889169AD72208AB252FD41CC /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		91EF6CBBEF28621823785192 /* sftp.rs */ = {isa = PBXFileReference; path = sftp.rs; sourceTree = "<group>"; };
+		926F8F36CA3996198BE622C6 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		99997ECEAF83860DE4774E15 /* filezilla.rs */ = {isa = PBXFileReference; path = filezilla.rs; sourceTree = "<group>"; };
+		9BD00F1F5DE660607DE5DDA7 /* exec.rs */ = {isa = PBXFileReference; path = exec.rs; sourceTree = "<group>"; };
+		9D69FADC511D59199CB01D8A /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
+		A460836C1EEE9C65BE8E9706 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
+		AACC70F47FABB9024795B856 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B07867ABB1B30AEBACA2F047 /* keystore.rs */ = {isa = PBXFileReference; path = keystore.rs; sourceTree = "<group>"; };
+		B357DB707931B99695B77FAF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B386E86FBC29CE179FFC45DD /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		BF5282C1EE49BC7B39327C09 /* pty.rs */ = {isa = PBXFileReference; path = pty.rs; sourceTree = "<group>"; };
+		BF6BF039D415AFB7A4896D9D /* tests.rs */ = {isa = PBXFileReference; path = tests.rs; sourceTree = "<group>"; };
+		C4B94C472CDC8E972AAEABEF /* claude_code.rs */ = {isa = PBXFileReference; path = claude_code.rs; sourceTree = "<group>"; };
+		C7D9FA89242C6D09B8D0867E /* rdp_file.rs */ = {isa = PBXFileReference; path = rdp_file.rs; sourceTree = "<group>"; };
+		CBADCF8E0D4574033B12425E /* hosts.rs */ = {isa = PBXFileReference; path = hosts.rs; sourceTree = "<group>"; };
+		CE1AB30607174C7BE01AF959 /* known_hosts_admin.rs */ = {isa = PBXFileReference; path = known_hosts_admin.rs; sourceTree = "<group>"; };
+		D2C512D57F3D0C000FD51090 /* auth.rs */ = {isa = PBXFileReference; path = auth.rs; sourceTree = "<group>"; };
+		D88EF69FFBE0A442385FC107 /* secrets.rs */ = {isa = PBXFileReference; path = secrets.rs; sourceTree = "<group>"; };
+		DAAD43CD74F9C747FFD001E5 /* hostealo-terminal_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "hostealo-terminal_iOS.entitlements"; sourceTree = "<group>"; };
+		E884ED599F7DD228DB3667DC /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
+		EF4C851241E9EF10067E665E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		F60A002B3071311F3E670098 /* tests.rs */ = {isa = PBXFileReference; path = tests.rs; sourceTree = "<group>"; };
+		F85821146A2CDE0E33E3086C /* known_hosts.rs */ = {isa = PBXFileReference; path = known_hosts.rs; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		026F11245CF25231DF87B53F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1F64A7ABC976BBE0549DCFE6 /* libapp.a in Frameworks */,
+				5F9DA60D0DF4739FC516E337 /* CoreGraphics.framework in Frameworks */,
+				6CE34759832C3192624512B3 /* Metal.framework in Frameworks */,
+				06A8637E877ABBE569D757EF /* MetalKit.framework in Frameworks */,
+				090CE4D3738B52E6724E1F30 /* QuartzCore.framework in Frameworks */,
+				E95DEC6062C1544393EE3CF9 /* Security.framework in Frameworks */,
+				3F9828D2D4E2C07002F70C54 /* UIKit.framework in Frameworks */,
+				749EA537FFB54BEDB6E419CB /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1C855A313DF1E7FEC40AA314 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5CFC2ABA88F9BE57D2CE7DEC /* CoreGraphics.framework */,
+				889169AD72208AB252FD41CC /* libapp.a */,
+				3A84667BE3BA9C84B8A46287 /* Metal.framework */,
+				323ADC25BFBE989C0AC76B95 /* MetalKit.framework */,
+				66BF566C5847CCD1ADD4DA09 /* QuartzCore.framework */,
+				B386E86FBC29CE179FFC45DD /* Security.framework */,
+				EF4C851241E9EF10067E665E /* UIKit.framework */,
+				4A4EEC1F177B401D0B8918A6 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		2F347A0B1864361C66F552A7 /* rdp_clipboard */ = {
+			isa = PBXGroup;
+			children = (
+				8442750D6ED07DA9E648BF37 /* dib.rs */,
+				6C1AB0BF7AD4BB5A83F3A39C /* files.rs */,
+				7FB4EDDC30AA9EC3B5965E20 /* mod.rs */,
+				BF6BF039D415AFB7A4896D9D /* tests.rs */,
+			);
+			path = rdp_clipboard;
+			sourceTree = "<group>";
+		};
+		3026514B52C306CCCDCEC434 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2DE0BF4723F608897BAACB1A /* hostealo-terminal_iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3EE0DE4209B435DF5DD91B74 /* importer */ = {
+			isa = PBXGroup;
+			children = (
+				99997ECEAF83860DE4774E15 /* filezilla.rs */,
+				4DE6AFED59DD3AC33636755A /* mobaxterm.rs */,
+				4EC7F7CEEB3246FC4D7014A1 /* mod.rs */,
+				0E2361D9430E15E6E4F4186F /* putty.rs */,
+				C7D9FA89242C6D09B8D0867E /* rdp_file.rs */,
+				0AF26BF3193D341B2D1C1C77 /* royal.rs */,
+				38F975D1790C0E9A9F406931 /* ssh_config.rs */,
+			);
+			path = importer;
+			sourceTree = "<group>";
+		};
+		490AC55922D8E2501FD9E71C /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				7F3AE501DCB5E62603BEC0BB /* hostealo-terminal */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		4ECD66CD4DD9A466CD22683D /* ai */ = {
+			isa = PBXGroup;
+			children = (
+				C4B94C472CDC8E972AAEABEF /* claude_code.rs */,
+				720E57956353E486865628CE /* mod.rs */,
+			);
+			path = ai;
+			sourceTree = "<group>";
+		};
+		7F3AE501DCB5E62603BEC0BB /* hostealo-terminal */ = {
+			isa = PBXGroup;
+			children = (
+				926F8F36CA3996198BE622C6 /* main.mm */,
+				ADD5B7963C135E3849B267F1 /* bindings */,
+			);
+			path = "hostealo-terminal";
+			sourceTree = "<group>";
+		};
+		7FD996D1E8A2ADE2E02F1CD6 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				793F5BF84E81F6896732FA69 /* device_auth.rs */,
+				275147C93058D97432794929 /* device.rs */,
+				9BD00F1F5DE660607DE5DDA7 /* exec.rs */,
+				3E4289DEBE018603A3C2665D /* ftp.rs */,
+				0D1638668C9502CEB4DBB575 /* hostealo.rs */,
+				CBADCF8E0D4574033B12425E /* hosts.rs */,
+				B07867ABB1B30AEBACA2F047 /* keystore.rs */,
+				CE1AB30607174C7BE01AF959 /* known_hosts_admin.rs */,
+				E884ED599F7DD228DB3667DC /* lib.rs */,
+				3E7FA9CC048010039735E608 /* local_fs.rs */,
+				7E65274A99C1E00E7B876F83 /* main.rs */,
+				4533AA7040176F7F1F623F77 /* monitor.rs */,
+				BF5282C1EE49BC7B39327C09 /* pty.rs */,
+				101AA6E1DFB957429618298A /* rdp_audio.rs */,
+				3F517A226668EEADE009178A /* rdp_drive.rs */,
+				103FDC1E80B1E72CAE00817E /* rdp.rs */,
+				D88EF69FFBE0A442385FC107 /* secrets.rs */,
+				80DF8933D239C6ADB96FE60A /* ssh_keys.rs */,
+				2D6126F3DA4FC1E48A6C3FA0 /* sync.rs */,
+				32C9E15DF5183D6ACD4F5F4B /* tls.rs */,
+				4ECD66CD4DD9A466CD22683D /* ai */,
+				3EE0DE4209B435DF5DD91B74 /* importer */,
+				2F347A0B1864361C66F552A7 /* rdp_clipboard */,
+				B6B4BC0C22973D66A66FF65B /* ssh */,
+			);
+			name = src;
+			path = ../../src;
+			sourceTree = "<group>";
+		};
+		9AE844F361D695ACB31300AF /* hostealo-terminal_iOS */ = {
+			isa = PBXGroup;
+			children = (
+				DAAD43CD74F9C747FFD001E5 /* hostealo-terminal_iOS.entitlements */,
+				B357DB707931B99695B77FAF /* Info.plist */,
+			);
+			path = "hostealo-terminal_iOS";
+			sourceTree = "<group>";
+		};
+		ADD5B7963C135E3849B267F1 /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				A460836C1EEE9C65BE8E9706 /* bindings.h */,
+			);
+			path = bindings;
+			sourceTree = "<group>";
+		};
+		B6B4BC0C22973D66A66FF65B /* ssh */ = {
+			isa = PBXGroup;
+			children = (
+				D2C512D57F3D0C000FD51090 /* auth.rs */,
+				F85821146A2CDE0E33E3086C /* known_hosts.rs */,
+				2EC3A5146E634A979B265BD0 /* mod.rs */,
+				6E69780CDAB67765A1F785FF /* monitor.rs */,
+				2C41277237CF4501EB23A62E /* os.rs */,
+				7B1A447B6BD2A9A49289381F /* prompts.rs */,
+				0A808C86A4610FDF8A47987D /* remote.rs */,
+				91EF6CBBEF28621823785192 /* sftp.rs */,
+				F60A002B3071311F3E670098 /* tests.rs */,
+			);
+			path = ssh;
+			sourceTree = "<group>";
+		};
+		C8D9B9CEFE2D8DBFC50F31FE /* Externals */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Externals;
+			sourceTree = "<group>";
+		};
+		D4775E07C9379B0C3C7B7FD5 = {
+			isa = PBXGroup;
+			children = (
+				9D69FADC511D59199CB01D8A /* assets */,
+				26463561F2A8F582A4C0B380 /* Assets.xcassets */,
+				AACC70F47FABB9024795B856 /* LaunchScreen.storyboard */,
+				C8D9B9CEFE2D8DBFC50F31FE /* Externals */,
+				9AE844F361D695ACB31300AF /* hostealo-terminal_iOS */,
+				490AC55922D8E2501FD9E71C /* Sources */,
+				7FD996D1E8A2ADE2E02F1CD6 /* src */,
+				1C855A313DF1E7FEC40AA314 /* Frameworks */,
+				3026514B52C306CCCDCEC434 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E6E1B8C6C36C3D3D1CD54BB7 /* hostealo-terminal_iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BDA63DADC1B532C7FAEEBCEF /* Build configuration list for PBXNativeTarget "hostealo-terminal_iOS" */;
+			buildPhases = (
+				ED6060AB675A16F8572293FA /* Build Rust Code */,
+				49D254B18E65C1A7CA3C535B /* Sources */,
+				52CA78DB3884028FBD1ED132 /* Resources */,
+				026F11245CF25231DF87B53F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "hostealo-terminal_iOS";
+			packageProductDependencies = (
+			);
+			productName = "hostealo-terminal_iOS";
+			productReference = 2DE0BF4723F608897BAACB1A /* hostealo-terminal_iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C0E6936B031A5FCFE3356CF1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					E6E1B8C6C36C3D3D1CD54BB7 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = 06F826C8A7BE044052D10691 /* Build configuration list for PBXProject "hostealo-terminal" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = D4775E07C9379B0C3C7B7FD5;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3026514B52C306CCCDCEC434 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E6E1B8C6C36C3D3D1CD54BB7 /* hostealo-terminal_iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		52CA78DB3884028FBD1ED132 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				40E32D51F86D44BA95D59787 /* Assets.xcassets in Resources */,
+				75904DE80468B982282B7D66 /* LaunchScreen.storyboard in Resources */,
+				11EA7B069628D879D4A58A06 /* assets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		ED6060AB675A16F8572293FA /* Build Rust Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Rust Code";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Externals/x86_64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64/${CONFIGURATION}/libapp.a",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "npm run -- tauri ios xcode-script -v --platform \"${PLATFORM_DISPLAY_NAME:?}\" --sdk-root \"${SDKROOT:?}\" --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration \"${CONFIGURATION:?}\" ${FORCE_COLOR} ${ARCHS:?}\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		49D254B18E65C1A7CA3C535B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0B31930630C5C0588D51852 /* main.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3DC23DCEEE549C20C22BBE18 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = debug;
+		};
+		7F8D346B32FF4370D30BD600 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "hostealo-terminal_iOS/hostealo-terminal_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "hostealo-terminal_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = es.hostealo.terminal;
+				PRODUCT_NAME = "Hostealo Terminal";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = debug;
+		};
+		A9ACA041BBAD1D404BA7D966 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = release;
+		};
+		F5782A659633AAEE4ADB2846 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "hostealo-terminal_iOS/hostealo-terminal_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "hostealo-terminal_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = es.hostealo.terminal;
+				PRODUCT_NAME = "Hostealo Terminal";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		06F826C8A7BE044052D10691 /* Build configuration list for PBXProject "hostealo-terminal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3DC23DCEEE549C20C22BBE18 /* debug */,
+				A9ACA041BBAD1D404BA7D966 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		BDA63DADC1B532C7FAEEBCEF /* Build configuration list for PBXNativeTarget "hostealo-terminal_iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7F8D346B32FF4370D30BD600 /* debug */,
+				F5782A659633AAEE4ADB2846 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C0E6936B031A5FCFE3356CF1 /* Project object */;
+}

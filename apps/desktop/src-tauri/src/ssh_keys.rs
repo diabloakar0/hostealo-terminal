@@ -238,7 +238,7 @@ pub fn ssh_keys_default_comment() -> String {
     let user = std::env::var("USER")
         .or_else(|_| std::env::var("USERNAME"))
         .unwrap_or_default();
-    let host = sysinfo::System::host_name().unwrap_or_default();
+    let host = crate::device::host_name().unwrap_or_default();
     match (user.is_empty(), host.is_empty()) {
         (false, false) => format!("{user}@{host}"),
         (false, true) => user,

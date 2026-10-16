@@ -7,7 +7,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { cn } from "@hostealo/ui/cn";
 
 import type { Host } from "../lib/ipc";
-import { isMac } from "../lib/format";
+import { hasLocalShell, isIOS, isMac } from "../lib/format";
 import { useAlerts } from "../store/alerts";
 import { useHostealo } from "../store/hostealo";
 import { useSettings, type LanguagePreference, type ThemePreference } from "../store/settings";
@@ -40,17 +40,19 @@ export function Sidebar(props: SidebarProps) {
   const connected = useTabs((s) => new Set(s.tabs.filter((tab) => tab.hostId && tab.status === "connected").map((tab) => tab.hostId)).size);
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col p-2">
+    <aside className="flex w-64 shrink-0 flex-col p-2 max-md:h-full max-md:w-full">
       {/* On macOS the traffic lights sit over this strip; it doubles as a window drag handle. */}
-      {isMac && <div data-tauri-drag-region className="h-8 shrink-0" />}
+      {isMac && !isIOS && <div data-tauri-drag-region className="h-8 shrink-0" />}
 
       <BrandMenu />
 
       <nav className="mt-3 flex-1 space-y-5 overflow-x-hidden overflow-y-auto text-sm">
         <Group title={t("sidebar.sessions")}>
-          <NavItem icon={<SquareTerminal />} onClick={props.onNewLocal}>
-            {t("sidebar.localTerminal")}
-          </NavItem>
+          {hasLocalShell && (
+            <NavItem icon={<SquareTerminal />} onClick={props.onNewLocal}>
+              {t("sidebar.localTerminal")}
+            </NavItem>
+          )}
           <NavItem
             icon={<Activity />}
             current={activeKind === "status"}

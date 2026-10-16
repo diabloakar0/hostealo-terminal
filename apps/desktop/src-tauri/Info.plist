@@ -2,12 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- Device sync: finding your other devices on the local network (Bonjour). -->
+  <!-- Servers on the local network, and device sync finding your other devices (Bonjour). -->
   <key>NSLocalNetworkUsageDescription</key>
-  <string>Hostealo Terminal busca tus otros dispositivos en la red local para sincronizar tus servidores, sin pasar por internet.</string>
+  <string>Hostealo Terminal se conecta a los servidores de tu red local y busca tus otros dispositivos para sincronizar tus servidores, sin pasar por internet.</string>
   <key>NSBonjourServices</key>
   <array>
     <string>_hostealo-sync._tcp</string>
   </array>
+  <!-- iPhone and iPad: Face ID before showing a saved password (Touch ID needs no text). -->
+  <key>NSFaceIDUsageDescription</key>
+  <string>Hostealo Terminal te pide Face ID antes de mostrar una contraseña guardada.</string>
+  <!-- iPhone and iPad: the files downloaded over SFTP or FTP show up in the Files app. -->
+  <key>UIFileSharingEnabled</key>
+  <true/>
+  <key>LSSupportsOpeningDocumentsInPlace</key>
+  <true/>
 </dict>
 </plist>
