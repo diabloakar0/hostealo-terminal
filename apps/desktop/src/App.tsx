@@ -141,6 +141,11 @@ export default function App() {
 
   const activeTab = tabs.find((tab) => tab.id === activeId);
   const immersive = phoneLandscape && activeTab?.kind === "rdp";
+  const edge = immersive ? "all" : compact && activeTab?.kind === "rdp" ? "bottom" : null;
+  useEffect(() => {
+    if (edge) document.documentElement.dataset.edge = edge;
+    else delete document.documentElement.dataset.edge;
+  }, [edge]);
   const activeHost = activeTab?.kind === "ssh" ? hosts.find((h) => h.id === activeTab.hostId) : undefined;
   const activeAccent = useHostAccent(activeHost?.id ?? null);
 

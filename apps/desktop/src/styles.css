@@ -29,6 +29,26 @@ body,
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
+/* On a phone the app fills the screen, so the safe areas around it take the colour of the
+   panel they touch instead of showing as bands. */
+@media (max-width: 767px), (max-height: 500px) {
+  body {
+    background-color: var(--bg-card);
+  }
+}
+
+/* A remote desktop uses every pixel (App.tsx sets data-edge): down to the bottom edge, and
+   edge to edge on a phone on its side. */
+html[data-edge="bottom"] #root {
+  padding-bottom: 0;
+}
+html[data-edge="all"] #root {
+  padding: 0;
+}
+html[data-edge="all"] body {
+  background-color: #000;
+}
+
 /* Desktop app chrome: no text selection outside inputs and the terminal (xterm handles its own). */
 body {
   user-select: none;
