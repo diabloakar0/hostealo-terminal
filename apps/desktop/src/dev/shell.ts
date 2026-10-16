@@ -8,6 +8,10 @@ export interface ShellSystem {
   osName: string;
   /** Local terminal (zsh on a Mac) or a server (bash). */
   local: boolean;
+  /** Language of the demo's own messages (the shell's output stays as a real one prints it). */
+  lang?: "es" | "en";
+  /** No demo hints (recordings): it greets and answers like a real server. */
+  quiet?: boolean;
 }
 
 const C = {
@@ -60,7 +64,7 @@ function serverTree(system: ShellSystem): Node {
       ssh: dir({ sshd_config: file("Port 22\nPermitRootLogin prohibit-password\nPasswordAuthentication no") }),
     }),
     var: dir({
-      www: dir({ html: dir({ "index.html": file("<!doctype html>\n<h1>¡Funciona!</h1>") }) }),
+      www: dir({ html: dir({ "index.html": file(`<!doctype html>\n<h1>${TEXT[system.lang ?? "es"].works}</h1>`) }) }),
       log: dir({
         "auth.log": file(
           `Oct 15 12:39:58 ${system.hostname} sshd[20311]: Failed password for root from 192.0.2.66 port 41022 ssh2\nOct 15 12:40:31 ${system.hostname} sshd[20340]: Accepted publickey for root from 192.0.2.44 port 51522 ssh2`,
@@ -104,6 +108,48 @@ function osRelease(name: string): string {
   return `PRETTY_NAME="${name}"\nNAME="${name.replace(/ [\d.]+.*$/, "")}"\nID=${id}\nHOME_URL="https://www.${id}.com/"`;
 }
 
+/** The demo's own messages, in both languages. */
+const TEXT = {
+  es: {
+    localHint: (help: string) => `Demo: escribe ${help} para ver qué puedes probar.`,
+    motd1: "Esta es la demo de Hostealo Terminal: el servidor es simulado.",
+    motd2: (b: (s: string) => string) => `Prueba ${b("help")}, ${b("ls -la")}, ${b("df -h")}, ${b("docker ps")} o pídeselo al asistente (botón IA).`,
+    fullscreen: (name: string) => `${name}: los programas a pantalla completa no están en la demo. En la app funcionan como en cualquier terminal.`,
+    notFoundHint: "(demo: escribe help para ver los comandos simulados)",
+    helpTitle: "Comandos simulados en esta demo",
+    helpService: "systemctl status <servicio>",
+    helpPackage: "apt install <paquete>",
+    helpAi: 'Además: abre el asistente (IA) y pídele algo como "instala nginx" en modo agente.',
+    exit: "En la demo la sesión se queda abierta: cierra la pestaña con la ✕.",
+    ssh: "En la demo no hay conexiones reales: elige un servidor en la barra lateral.",
+    rm: "rm: mejor no 😉 (y en la demo tampoco haría nada)",
+    dockerUsage: "Usage:  docker [OPTIONS] COMMAND   (en la demo: docker ps)",
+    brew: "(demo) Homebrew está, pero aquí no instala nada.",
+    reboot: "(demo) Aquí no se reinicia nada: en un servidor de verdad, la sesión se cortaría.",
+    aptHint: (tool: string) => `(demo) Prueba: ${tool} install nginx`,
+    works: "¡Funciona!",
+  },
+  en: {
+    localHint: (help: string) => `Demo: type ${help} to see what you can try.`,
+    motd1: "This is the Hostealo Terminal demo: the server is simulated.",
+    motd2: (b: (s: string) => string) => `Try ${b("help")}, ${b("ls -la")}, ${b("df -h")}, ${b("docker ps")} or ask the assistant (AI button).`,
+    fullscreen: (name: string) => `${name}: full-screen programs are not in the demo. In the app they work as in any terminal.`,
+    notFoundHint: "(demo: type help for the simulated commands)",
+    helpTitle: "Commands simulated in this demo",
+    helpService: "systemctl status <service>",
+    helpPackage: "apt install <package>",
+    helpAi: 'Also: open the assistant (AI) and ask for something like "install nginx" in agent mode.',
+    exit: "In the demo the session stays open: close the tab with its ✕.",
+    ssh: "There are no real connections in the demo: pick a server in the sidebar.",
+    rm: "rm: better not 😉 (and in the demo it would do nothing anyway)",
+    dockerUsage: "Usage:  docker [OPTIONS] COMMAND   (in the demo: docker ps)",
+    brew: "(demo) Homebrew is here, but it installs nothing.",
+    reboot: "(demo) Nothing reboots here: on a real server the session would drop.",
+    aptHint: (tool: string) => `(demo) Try: ${tool} install nginx`,
+    works: "It works!",
+  },
+};
+
 /** Lines to print over time (ms after the previous one), for commands that take a moment. */
 type Timed = [number, string][];
 
@@ -119,6 +165,7 @@ export class FakeShell {
   private queued = "";
   private installed = new Set<string>(["nginx", "docker"]);
   private hinted = false;
+  private readonly text: (typeof TEXT)["es"];
 
   constructor(
     private readonly system: ShellSystem,
@@ -126,6 +173,7 @@ export class FakeShell {
   ) {
     this.home = system.local ? `/Users/${system.user}` : system.user === "root" ? "/root" : `/home/${system.user}`;
     this.cwd = this.home;
+    this.text = TEXT[system.lang ?? "es"];
     this.root = system.local ? localTree(system) : serverTree(system);
   }
 
@@ -133,7 +181,7 @@ export class FakeShell {
   start(): void {
     if (this.system.local) {
       this.write(`${C.dim}Last login: ${new Date().toDateString()} on ttys001${C.reset}\r\n`);
-      this.write(`${C.dim}Demo: escribe ${C.reset}${C.bold}help${C.reset}${C.dim} para ver qué puedes probar.${C.reset}\r\n`);
+      if (!this.system.quiet) this.write(`${C.dim}${this.text.localHint(`${C.reset}${C.bold}help${C.reset}${C.dim}`)}${C.reset}\r\n`);
     } else {
       this.write(
         [
@@ -143,9 +191,7 @@ export class FakeShell {
           `  Usage of /:   38.2% of 78.62GB   Users logged in:       1`,
           `  Memory usage: 38%                IPv4 address for eth0: 203.0.113.10`,
           "",
-          `${C.cyan}Esta es la demo de Hostealo Terminal: el servidor es simulado.${C.reset}`,
-          `${C.cyan}Prueba ${C.bold}help${C.reset}${C.cyan}, ${C.bold}ls -la${C.reset}${C.cyan}, ${C.bold}df -h${C.reset}${C.cyan}, ${C.bold}docker ps${C.reset}${C.cyan} o pídeselo al asistente (botón IA).${C.reset}`,
-          "",
+          ...(this.system.quiet ? [] : [`${C.cyan}${this.text.motd1}${C.reset}`, `${C.cyan}${this.text.motd2((x) => `${C.bold}${x}${C.reset}${C.cyan}`)}${C.reset}`, ""]),
         ].join("\r\n") + "\r\n",
       );
     }
@@ -313,12 +359,12 @@ export class FakeShell {
       if (result === "async") return;
       if (result !== undefined) this.out(result);
     } else if (/^(vim?|nano|htop|top|less|more|mc|tmux|screen)$/.test(name)) {
-      this.out(`${C.yellow}${name}: los programas a pantalla completa no están en la demo. En la app funcionan como en cualquier terminal.${C.reset}`);
+      this.out(`${C.yellow}${this.text.fullscreen(name)}${C.reset}`);
     } else {
       this.out(`${this.system.local ? "zsh" : "bash"}: ${name}: command not found`);
-      if (!this.hinted) {
+      if (!this.hinted && !this.system.quiet) {
         this.hinted = true;
-        this.out(`${C.dim}(demo: escribe help para ver los comandos simulados)${C.reset}`);
+        this.out(`${C.dim}${this.text.notFoundHint}${C.reset}`);
       }
     }
     this.prompt();
@@ -327,12 +373,12 @@ export class FakeShell {
   private readonly commands: Record<string, (args: string[], line: string) => string | void | "async"> = {
     help: () =>
       [
-        `${C.bold}Comandos simulados en esta demo${C.reset}`,
+        `${C.bold}${this.text.helpTitle}${C.reset}`,
         "  ls [-la]   cd   pwd   cat   echo   whoami   hostname   uname -a   date   clear   history",
-        "  uptime   df -h   free -h   ip a   ping   curl -I   systemctl status <servicio>",
-        "  docker ps   apt install <paquete>   tail <log>   journalctl -u ssh   neofetch",
+        `  uptime   df -h   free -h   ip a   ping   curl -I   ${this.text.helpService}`,
+        `  docker ps   ${this.text.helpPackage}   tail <log>   journalctl -u ssh   neofetch`,
         "",
-        `${C.cyan}Además: abre el asistente (IA) y pídele algo como "instala nginx" en modo agente.${C.reset}`,
+        `${C.cyan}${this.text.helpAi}${C.reset}`,
       ].join("\n"),
     pwd: () => this.cwd,
     whoami: () => this.system.user,
@@ -342,9 +388,9 @@ export class FakeShell {
     date: () => new Date().toString().replace(/ \(.*\)$/, ""),
     clear: () => this.write("\x1b[2J\x1b[H"),
     history: () => this.history.map((h, i) => `${String(i + 1).padStart(5)}  ${h}`).join("\n"),
-    exit: () => `${C.dim}En la demo la sesión se queda abierta: cierra la pestaña con la ✕.${C.reset}`,
+    exit: () => `${C.dim}${this.text.exit}${C.reset}`,
     logout: () => this.commands.exit([], ""),
-    ssh: () => `${C.yellow}En la demo no hay conexiones reales: elige un servidor en la barra lateral.${C.reset}`,
+    ssh: () => `${C.yellow}${this.text.ssh}${C.reset}`,
     uname: (args) =>
       this.system.local
         ? args.includes("-a")
@@ -418,7 +464,7 @@ export class FakeShell {
     },
     rm: (args) => {
       const paths = args.filter((a) => !a.startsWith("-"));
-      if (paths.some((p) => p === "/" || p === "/*")) return `${C.red}rm: mejor no 😉 (y en la demo tampoco haría nada)${C.reset}`;
+      if (paths.some((p) => p === "/" || p === "/*")) return `${C.red}${this.text.rm}${C.reset}`;
       for (const path of paths) {
         const parent = this.resolve(path.includes("/") ? path.replace(/\/[^/]+\/?$/, "") || "/" : ".");
         if (parent?.dir) delete parent.children[path.replace(/\/$/, "").split("/").pop()!];
@@ -465,7 +511,7 @@ export class FakeShell {
     },
     curl: (args) => {
       const url = args.find((a) => !a.startsWith("-")) ?? "http://localhost";
-      if (!args.some((a) => a.startsWith("-") && a.includes("I"))) return this.installed.has("nginx") ? "<!doctype html>\n<h1>¡Funciona!</h1>" : `curl: (7) Failed to connect to ${url} port 80`;
+      if (!args.some((a) => a.startsWith("-") && a.includes("I"))) return this.installed.has("nginx") ? `<!doctype html>\n<h1>${this.text.works}</h1>` : `curl: (7) Failed to connect to ${url} port 80`;
       return ["HTTP/1.1 200 OK", "Server: nginx/1.24.0 (Ubuntu)", `Date: ${new Date().toUTCString()}`, "Content-Type: text/html", "Connection: keep-alive"].join("\n");
     },
     systemctl: (args) => {
@@ -486,7 +532,7 @@ export class FakeShell {
     },
     journalctl: () => this.commands.cat(["/var/log/auth.log"], ""),
     docker: (args) => {
-      if (args[0] !== "ps") return "Usage:  docker [OPTIONS] COMMAND   (en la demo: docker ps)";
+      if (args[0] !== "ps") return this.text.dockerUsage;
       return [
         "CONTAINER ID   IMAGE                COMMAND                  STATUS        PORTS                    NAMES",
         'a3f9c1e2b7d4   postgres:17          "docker-entrypoint.s…"   Up 12 days    5432/tcp                 db',
@@ -498,12 +544,12 @@ export class FakeShell {
     "apt-get": (args, line) => this.install(args, line),
     dnf: (args, line) => this.install(args, line),
     yum: (args, line) => this.install(args, line),
-    brew: () => `${C.dim}(demo) Homebrew está, pero aquí no instala nada.${C.reset}`,
+    brew: () => `${C.dim}${this.text.brew}${C.reset}`,
     nginx: (args) =>
       args.includes("-t")
         ? "nginx: the configuration file /etc/nginx/nginx.conf syntax is ok\nnginx: configuration file /etc/nginx/nginx.conf test is successful"
         : "nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)",
-    reboot: () => `${C.yellow}(demo) Aquí no se reinicia nada: en un servidor de verdad, la sesión se cortaría.${C.reset}`,
+    reboot: () => `${C.yellow}${this.text.reboot}${C.reset}`,
     shutdown: () => this.commands.reboot([], ""),
   };
 
@@ -518,7 +564,7 @@ export class FakeShell {
       ]);
       return "async";
     }
-    if (verb !== "install") return `${C.dim}(demo) Prueba: ${line.split(" ")[0]} install nginx${C.reset}`;
+    if (verb !== "install") return `${C.dim}${this.text.aptHint(line.split(" ")[0])}${C.reset}`;
     const packages = args.filter((a) => !a.startsWith("-") && a !== "install");
     if (!packages.length) return "E: No packages specified";
     const list = packages.join(" ");

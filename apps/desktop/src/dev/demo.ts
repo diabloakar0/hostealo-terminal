@@ -9,21 +9,48 @@ import { bytes, fakeDesktop, FOLDERS, host, HOSTS, KEYS, KNOWN, later, send, SFT
 import { FakeShell } from "./shell";
 
 const params = new URLSearchParams(location.search);
-const data: HostsData = { hosts: HOSTS.map((h) => ({ ...h })), folders: [...FOLDERS] };
+// Spanish by default, like hostealo.es; ?lang=en for English (the README's recordings).
+const language = params.get("lang") === "en" ? "en" : "es";
+const EN = language === "en";
+
+/** The sample data in English (folder, command and server names). */
+const NAMES_EN: Record<string, string> = {
+  Clientes: "Clients",
+  Producción: "Production",
+  "s-disk": "Disk space",
+  "s-docker": "Containers",
+  "s-logs": "nginx logs",
+  "s-reload": "Reload nginx",
+  "s-update": "Update packages",
+  "s-reboot": "Reboot the server",
+  "vps-tienda": "vps-shop",
+  "vps-correo": "vps-mail",
+  "dedicado-01": "dedicated-01",
+};
+const folderName = (path: string | null) => (path && EN ? path.split("/").map((part) => NAMES_EN[part] ?? part).join("/") : path);
+const name = (value: string) => (EN ? (NAMES_EN[value] ?? value) : value);
+
+const data: HostsData = {
+  hosts: HOSTS.map((h) => ({ ...h, folder: folderName(h.folder) })),
+  folders: FOLDERS.map((f) => folderName(f)!),
+};
 const shells = new Map<number, FakeShell>();
 const sessionHost = new Map<number, Host>();
 const timers = new Map<number, ReturnType<typeof setInterval>>();
 let nextId = 1;
 const dockerState = new Map<string, string>();
+/** The remote desktop's channels, to answer resizes. */
+let rdpDisplay: unknown = null;
+let rdpFrame: unknown = null;
 
-const snippets = snippetStore(SNIPPETS);
+const snippets = snippetStore(SNIPPETS.map((snippet) => ({ ...snippet, name: EN ? (NAMES_EN[snippet.id] ?? snippet.name) : snippet.name })));
 const hostsData = (): HostsData => ({ hosts: data.hosts, folders: data.folders, snippets: snippets.list() });
 
 function openShell(id: number, onData: unknown, target: Host | null) {
   const system = target
     ? { hostname: target.name, user: target.username || "root", osName: SYSTEMS[target.id]?.[1] ?? "Ubuntu 24.04.1 LTS", local: false }
     : { hostname: "MacBook-Pro", user: "demo", osName: "macOS 15.6", local: true };
-  const shell = new FakeShell(system, (text) => send(onData, bytes(text)));
+  const shell = new FakeShell({ ...system, lang: language, quiet: params.has("clean") }, (text) => send(onData, bytes(text)));
   shells.set(id, shell);
   shell.start();
 }
@@ -97,6 +124,51 @@ function stream(onEvent: unknown, reply: string, thinking: boolean) {
   later(start + 100 + words.length * 14, () => send(onEvent, { type: "done", stopReason: "end_turn" }));
 }
 
+const PLANS_EN: typeof PLANS = [
+  {
+    match: /nginx|instal|install/i,
+    steps: [
+      "It runs Ubuntu 24.04, so I install it with apt, without interactive questions:\n\n```run\nDEBIAN_FRONTEND=noninteractive apt-get install -y nginx\n```",
+      "Installed. Now I check that it answers on port 80:\n\n```run\ncurl -sI http://localhost | head -2\n```",
+    ],
+    done: "Done: **nginx 1.24** is installed and answers `200 OK` on port 80. The default site is in `/var/www/html`.",
+  },
+  {
+    match: /disk|space|full|disco/i,
+    steps: [
+      "First, how the disk looks:\n\n```run\ndf -h /\n```",
+      "Plenty of room (38 % used). Just in case, what takes the most in `/var`:\n\n```run\ndu -sh /var/* 2>/dev/null | sort -h | tail -3\n```",
+    ],
+    done: "The disk is fine: **46 GB free** of 79 GB. The biggest are `/var/lib/docker` (14 GB, container images) and `/var/log` (1.2 GB). `docker image prune` would free some old images.",
+  },
+  {
+    match: /memory|ram|slow|load/i,
+    steps: ["Checking memory and load:\n\n```run\nfree -h && uptime\n```"],
+    done: "All normal: **4.6 GB of RAM available** of 7.8 GB, no swap in use, and a load of 0.42 on 4 cores. If it feels slow, the server is not the cause; I would look at the app or the database.",
+  },
+  {
+    match: /.*/,
+    steps: ["A general look at the server:\n\n```run\nuptime && df -h / && systemctl --failed --no-legend\n```"],
+    done: "The server is healthy: **up 12 days**, disk at 38 % and **no failed services**. (In the demo the answers are prepared; in the app Claude answers for real.)",
+  },
+];
+
+const CHAT_EN: typeof CHAT = [
+  [/traffic|tcpdump/i, "Almost all the traffic you see is **HTTPS (443)** to `203.0.113.10`; the `:22` packets are your own SSH session. Nothing unusual."],
+  [
+    /login|ssh|attack|failed|security/i,
+    "`auth.log` shows failed **root password** logins from `192.0.2.66`. The server only accepts keys, so they cannot get in, but blocking that address is worth it:\n\n```bash\nufw deny from 192.0.2.66\n```\n\nTurn on **Agent** and I will do it, with your permission.",
+  ],
+];
+
+const CHAT_DEFAULT_EN =
+  "In this demo the assistant has prepared answers. In the app **Claude** answers for real, with your API key or your subscription through Claude Code, and it sees what happens in your terminal.\n\nTurn on **Agent** and ask *install nginx* or *how is the disk?*: it proposes the commands and runs them when you approve.";
+
+/** Docker sample names in English. */
+function english<T extends { stdout: string } | null>(output: T): T {
+  return EN && output ? { ...output, stdout: output.stdout.replaceAll("tienda", "shop") } : output;
+}
+
 function aiReply(messages: ChatMessage[], agent: boolean): string {
   // The request is the last message the user typed; command outputs come back as hidden turns.
   let start = messages.length - 1;
@@ -104,8 +176,8 @@ function aiReply(messages: ChatMessage[], agent: boolean): string {
   while (start > 0 && !typed(messages[start])) start--;
   // Without the terminal output attached to the question.
   const request = (messages[start]?.content ?? "").replace(/<terminal_context>[\s\S]*<\/terminal_context>/, "");
-  if (!agent) return CHAT.find(([match]) => match.test(request))?.[1] ?? CHAT_DEFAULT;
-  const plan = PLANS.find((p) => p.match.test(request))!;
+  if (!agent) return (EN ? CHAT_EN : CHAT).find(([match]) => match.test(request))?.[1] ?? (EN ? CHAT_DEFAULT_EN : CHAT_DEFAULT);
+  const plan = (EN ? PLANS_EN : PLANS).find((p) => p.match.test(request))!;
   const step = Math.floor((messages.length - 1 - start) / 2);
   return plan.steps[step] ?? plan.done;
 }
@@ -136,11 +208,12 @@ function transfer(onProgress: unknown, name: string, total: number): Promise<nul
 // ── The backend ───────────────────────────────────────────
 
 /** What the import dialog finds in the "MobaXterm" file. */
-const IMPORTABLE = [
+const IMPORTABLE_ES = [
   { name: "web-02", hostname: "203.0.113.12", port: 22, username: "root", protocol: "ssh" as const, folder: "Producción", keyPath: null, color: null, hasPassword: false, duplicate: false },
   { name: "dc-01", hostname: "10.0.0.5", port: 3389, username: "ACME\\admin", protocol: "rdp" as const, folder: "Clientes/Acme", keyPath: null, color: null, hasPassword: false, duplicate: false },
   { name: "backup", hostname: "192.0.2.80", port: 2222, username: "backup", protocol: "ssh" as const, folder: null, keyPath: null, color: null, hasPassword: false, duplicate: false },
 ];
+const IMPORTABLE = IMPORTABLE_ES.map((item) => ({ ...item, folder: folderName(item.folder) }));
 
 let syncEvents: unknown = null;
 
@@ -172,11 +245,15 @@ mockIPC(
         return snippets.remove(String(a.id));
       case "hosts_reveal_secret":
         return new Promise((resolve) => later(500, () => resolve("Pr0d-w3b-01!2026")));
+      case "rdp_resize":
+        send(rdpDisplay, { type: "size", width: a.width, height: a.height });
+        later(50, () => send(rdpFrame, fakeDesktop(Number(a.width), Number(a.height))));
+        return true;
       case "remote_open":
         later(400, () => send(a.onEvent, { type: "status", stage: "connected" }));
         return 31;
       case "remote_exec":
-        return new Promise((resolve) => later(String(a.command).includes(" stats ") ? 600 : 150, () => resolve(proxmoxExec(String(a.command)) ?? dockerExec(String(a.command), dockerState))));
+        return new Promise((resolve) => later(String(a.command).includes(" stats ") ? 600 : 150, () => resolve(english(proxmoxExec(String(a.command)) ?? dockerExec(String(a.command), dockerState)))));
       case "remote_close":
         return null;
       case "hostealo_reset_password":
@@ -215,7 +292,14 @@ mockIPC(
         later(550, () => {
           send(a.onEvent, { type: "status", stage: "connected" });
           openShell(id, a.onData, target);
-          const tick = () => send(a.onMonitor, { type: "snapshot", snapshot: snapshot(true) });
+          const tick = () => {
+            const snap = snapshot(true);
+            snap.hostname = target.name;
+            snap.os = SYSTEMS[target.id]?.[1] ?? snap.os;
+            // ?fulldisk: web-01's database disk nearly full, to show an alert.
+            if (params.has("fulldisk") && target.id === "web") snap.disks[1].used = 187 * 2 ** 30;
+            send(a.onMonitor, { type: "snapshot", snapshot: snap });
+          };
           tick();
           timers.set(id, setInterval(tick, 2000));
         });
@@ -238,11 +322,16 @@ mockIPC(
       }
 
       case "rdp_connect": {
-        const [width, height] = [1280, 720];
+        // The size asked for, as a server with live resizing gives it.
+        const [width, height] = [Number(a.width), Number(a.height)];
+        rdpDisplay = a.onDisplay;
+        rdpFrame = a.onFrame;
         later(400, () => {
           send(a.onEvent, { type: "status", stage: "connected" });
           send(a.onDisplay, { type: "size", width, height });
           send(a.onFrame, fakeDesktop(width, height));
+          // ?audio: show the sound indicator as playing (recordings).
+          if (params.has("audio")) send(a.onDisplay, { type: "audio", playing: true, error: null });
         });
         return nextId++;
       }
@@ -319,9 +408,9 @@ mockIPC(
         return new Promise((resolve) => later(700, () => resolve({ name: "Tu empresa SL", email: "demo@example.com" })));
       case "hostealo_sync": {
         const added = [
-          { ...host("h-vps-1", "vps-tienda", "203.0.113.70", "Hostealo/VPS"), hostealo: { serviceId: "1201", kind: "vps" as const } },
-          { ...host("h-vps-2", "vps-correo", "203.0.113.71", "Hostealo/VPS"), hostealo: { serviceId: "1202", kind: "vps" as const } },
-          { ...host("h-ded-1", "dedicado-01", "203.0.113.90", "Hostealo/Dedicados"), hostealo: { serviceId: "877", kind: "dedicated" as const } },
+          { ...host("h-vps-1", name("vps-tienda"), "203.0.113.70", "Hostealo/VPS"), hostealo: { serviceId: "1201", kind: "vps" as const } },
+          { ...host("h-vps-2", name("vps-correo"), "203.0.113.71", "Hostealo/VPS"), hostealo: { serviceId: "1202", kind: "vps" as const } },
+          { ...host("h-ded-1", name("dedicado-01"), "203.0.113.90", "Hostealo/Dedicados"), hostealo: { serviceId: "877", kind: "dedicated" as const } },
         ].filter((h) => !data.hosts.some((existing) => existing.id === h.id));
         data.hosts.push(...added);
         for (const folder of ["Hostealo", "Hostealo/VPS", "Hostealo/Dedicados"]) if (!data.folders.includes(folder)) data.folders.push(folder);
@@ -390,17 +479,16 @@ mockIPC(
 );
 
 // Preferences: the visitor's theme, unless the page asks for one.
-// Spanish by default, like hostealo.es (the shell and the assistant's answers are in Spanish).
-const language = params.get("lang") ?? "es";
 const theme = params.get("theme") ?? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
 try {
-  localStorage.setItem("hostealo-terminal:settings", JSON.stringify({ theme, language, collapsedFolders: ["Clientes/Beta"] }));
+  localStorage.setItem("hostealo-terminal:settings", JSON.stringify({ theme, language, collapsedFolders: [folderName("Clientes/Beta")] }));
 } catch {
   // Storage blocked: defaults apply.
 }
 
 // Opened on its own (not inside the website), say it is a demo.
-if (window.top === window) {
+// ?clean: no badge (recordings for the README).
+if (window.top === window && !params.has("clean")) {
   const badge = document.body.appendChild(document.createElement("a"));
   badge.href = "https://hostealo.es/terminal";
   badge.textContent = language === "es" ? "Demo · sin conexiones reales · Descargar la app →" : "Demo · no real connections · Get the app →";

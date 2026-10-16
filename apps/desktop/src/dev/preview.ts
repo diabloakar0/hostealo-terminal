@@ -105,6 +105,8 @@ mockIPC(
           send(a.onEvent, { type: "status", stage: "connected" });
           send(a.onDisplay, { type: "size", width, height });
           send(a.onFrame, fakeDesktop(width, height));
+          // ?audio: the server is sending sound (green speaker in the tab bar).
+          if (params.has("audio")) send(a.onDisplay, { type: "audio", playing: true, error: null });
         });
         // ?clip=files|progress|saved: the clipboard bar.
         const clip = params.get("clip");
