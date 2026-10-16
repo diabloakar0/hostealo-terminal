@@ -730,7 +730,9 @@ pub fn rdp_connect(
             #[cfg(desktop)]
             let local: Arc<dyn LocalClipboard> =
                 Arc::new(crate::rdp_clipboard::SystemClipboard::new());
-            #[cfg(mobile)]
+            #[cfg(target_os = "ios")]
+            let local: Arc<dyn LocalClipboard> = Arc::new(crate::rdp_clipboard::IosClipboard);
+            #[cfg(all(mobile, not(target_os = "ios")))]
             let local: Arc<dyn LocalClipboard> =
                 Arc::new(crate::rdp_clipboard::MemoryClipboard::default());
             let (link, mut clipboard_events) = ClipboardLink::new(local);

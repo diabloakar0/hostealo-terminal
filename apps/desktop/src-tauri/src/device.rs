@@ -65,6 +65,9 @@ pub fn disk_space(path: &std::path::Path) -> Option<(u64, u64)> {
         }
         let stat = unsafe { stat.assume_init() };
         let block = u64::from(stat.f_frsize as u32).max(1);
-        Some((u64::from(stat.f_blocks) * block, u64::from(stat.f_bavail) * block))
+        Some((
+            u64::from(stat.f_blocks) * block,
+            u64::from(stat.f_bavail) * block,
+        ))
     }
 }

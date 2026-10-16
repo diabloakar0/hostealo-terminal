@@ -316,7 +316,8 @@
     "sharedFolderShort": "Carpeta",
     "audioPlaying": "Sonido: llega del servidor y suena en este equipo",
     "audioFailed": "Sonido: llega del servidor pero no se puede reproducir aquí ({{error}})",
-    "audioWaiting": "Sonido: el servidor aún no ha enviado nada (reproduce algo en Windows; si sigue así, revisa que el servicio «Audio de Windows» esté en marcha)"
+    "audioWaiting": "Sonido: el servidor aún no ha enviado nada (reproduce algo en Windows; si sigue así, revisa que el servicio «Audio de Windows» esté en marcha)",
+    "keyboard": "Teclado"
   },
   "ai": {
     "title": "Asistente de IA",

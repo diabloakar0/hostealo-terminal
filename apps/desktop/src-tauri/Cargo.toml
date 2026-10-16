@@ -60,6 +60,7 @@ reqwest = { version = "0.13", default-features = false, features = ["rustls", "j
 x509-cert = "0.2"
 
 [dev-dependencies]
+png = "0.18"
 tokio = { version = "1", features = ["rt-multi-thread"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
@@ -79,7 +80,7 @@ objc2-app-kit = { version = "0.3", default-features = false, features = ["std", 
 # Touch ID, Face ID or the device password before showing a saved password (device_auth.rs).
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc2-local-authentication = { version = "0.3", default-features = false, features = ["std", "LAContext", "LAPublicDefines", "block2"] }
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSError"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSError", "NSData"] }
 block2 = "0.6"
 objc2 = "0.6"
 
@@ -94,3 +95,7 @@ apple-native-keyring-store = { version = "1", features = ["protected"] }
 # What sysinfo answers on desktop (see device.rs).
 libc = "0.2"
 if-addrs = "0.15"
+# The iOS clipboard for remote desktop sessions (rdp_clipboard/ios.rs); UIKit hands images over
+# as PNG.
+objc2-ui-kit = { version = "0.3", default-features = false, features = ["std", "UIPasteboard", "UIImage"] }
+png = "0.18"

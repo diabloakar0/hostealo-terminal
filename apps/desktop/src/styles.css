@@ -3,6 +3,18 @@
 @import "@hostealo/ui/tokens.css";
 @import "@hostealo/ui/panel.css";
 
+/* Phone-sized screens, portrait or landscape (a phone on its side is wide but short): the
+   sidebar is a drawer, side panels take the screen. hooks/useCompact.ts uses the same query. */
+@custom-variant compact {
+  @media (max-width: 767px) {
+    @slot;
+  }
+  @media (max-height: 500px) {
+    @slot;
+  }
+}
+@custom-variant roomy (@media (min-width: 768px) and (min-height: 501px));
+
 html,
 body,
 #root {

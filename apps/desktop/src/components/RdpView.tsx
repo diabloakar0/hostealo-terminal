@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type WheelEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type WheelEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 import { cn } from "@hostealo/ui/cn";
@@ -6,11 +6,13 @@ import { cn } from "@hostealo/ui/cn";
 import { isMac } from "../lib/format";
 import { rdpClipboardSync, rdpClose, rdpConnect, rdpInput, rdpResize, type RdpClipboardNotice, type RdpInput } from "../lib/ipc";
 import { registerRdp, useRdpAudio } from "../lib/rdpSessions";
+import { createTouchGestures, useRdpKeyboard } from "../lib/rdpTouch";
 import { CTRL_ALT_DEL, SCANCODES } from "../lib/scancodes";
 import { useHostAccent } from "../hooks/useHostColor";
 import { usePrompts } from "../store/prompts";
 import { useTabs, type Tab } from "../store/tabs";
 import { RdpClipboardBar } from "./RdpClipboardBar";
+import { RdpKeyboard } from "./RdpKeyboard";
 import { Button } from "./ui/Button";
 
 /** Wait this long after the last window resize before asking the server for a new size. */
@@ -162,6 +164,9 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
       clearTimeout(timer);
       timer = setTimeout(() => {
         if (id === null || container.clientWidth === 0) return;
+        // The on-screen keyboard takes room only for a while: the desktop just scales down
+        // meanwhile (resizing would reconnect on some servers). Closing it brings the size back.
+        if (useRdpKeyboard.getState().tabId === tab.id) return;
         const wanted = desktopSize(container);
         if (sameSize(requestedRef.current, wanted)) return;
         requestedRef.current = wanted;
@@ -214,15 +219,44 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
     viewSize !== null &&
     Math.abs(remoteSize.width / remoteSize.height / (viewSize.width / viewSize.height) - 1) < FILL_TOLERANCE;
 
-  /** Mouse position in remote desktop pixels (the canvas may be scaled to fit). */
-  const position = (e: MouseEvent): { x: number; y: number } | null => {
+  /** A screen point in remote desktop pixels (the canvas may be scaled to fit). */
+  const remotePoint = (clientX: number, clientY: number): { x: number; y: number } | null => {
     const canvas = canvasRef.current;
     if (!canvas || !remoteSize) return null;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.round(((e.clientX - rect.left) / rect.width) * remoteSize.width);
-    const y = Math.round(((e.clientY - rect.top) / rect.height) * remoteSize.height);
+    const x = Math.round(((clientX - rect.left) / rect.width) * remoteSize.width);
+    const y = Math.round(((clientY - rect.top) / rect.height) * remoteSize.height);
     return { x: Math.max(0, Math.min(remoteSize.width - 1, x)), y: Math.max(0, Math.min(remoteSize.height - 1, y)) };
   };
+  const position = (e: MouseEvent) => remotePoint(e.clientX, e.clientY);
+  const remotePointRef = useRef(remotePoint);
+  remotePointRef.current = remotePoint;
+
+  // Fingers (iPhone, iPad): tap to click, hold for a right click, drag, two fingers to scroll.
+  const touch = useMemo(
+    () =>
+      createTouchGestures(
+        (ops) => sendRef.current(ops),
+        (p) => remotePointRef.current(p.x, p.y),
+      ),
+    [],
+  );
+  const onTouch = (e: PointerEvent, phase: "down" | "move" | "up" | "cancel") => {
+    if (e.pointerType !== "touch") return;
+    // Also keeps the browser from making mouse events out of the touch.
+    e.preventDefault();
+    const p = { x: e.clientX, y: e.clientY };
+    if (phase === "down") touch.down(e.pointerId, p);
+    else if (phase === "move") touch.move(e.pointerId, p);
+    else if (phase === "up") touch.up(e.pointerId, p);
+    else touch.cancel();
+  };
+
+  // The device keyboard, opened from the tab bar (touch screens).
+  const keyboardOpen = useRdpKeyboard((s) => s.tabId === tab.id);
+  useEffect(() => {
+    if (!active && useRdpKeyboard.getState().tabId === tab.id) useRdpKeyboard.getState().setOpen(null);
+  }, [active, tab.id]);
 
   const onMouseMove = (e: MouseEvent) => {
     const p = position(e);
@@ -266,6 +300,10 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
           onMouseMove={onMouseMove}
           onMouseDown={(e) => onMouseButton(e, true)}
           onMouseUp={(e) => onMouseButton(e, false)}
+          onPointerDown={(e) => onTouch(e, "down")}
+          onPointerMove={(e) => onTouch(e, "move")}
+          onPointerUp={(e) => onTouch(e, "up")}
+          onPointerCancel={(e) => onTouch(e, "cancel")}
           onContextMenu={(e) => e.preventDefault()}
           onWheel={onWheel}
           onKeyDown={(e) => onKey(e, true)}
@@ -273,7 +311,7 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
           onBlur={() => send([{ type: "releaseAll" }])}
           // Whatever was copied while away is offered to the remote again.
           onFocus={() => sessionRef.current !== null && void rdpClipboardSync(sessionRef.current).catch(() => {})}
-          style={{ cursor, aspectRatio: remoteSize && !fill ? `${remoteSize.width} / ${remoteSize.height}` : undefined }}
+          style={{ cursor, touchAction: "none", aspectRatio: remoteSize && !fill ? `${remoteSize.width} / ${remoteSize.height}` : undefined }}
           className={remoteSize ? cn("outline-none", fill ? "absolute inset-0 size-full" : "max-h-full max-w-full") : "hidden"}
         />
 
@@ -312,6 +350,15 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
         )}
       </div>
 
+      {keyboardOpen && remoteSize && (
+        <RdpKeyboard
+          send={send}
+          onClose={() => {
+            useRdpKeyboard.getState().setOpen(null);
+            canvasRef.current?.focus();
+          }}
+        />
+      )}
     </div>
   );
 }

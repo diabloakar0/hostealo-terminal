@@ -13,6 +13,10 @@
 
 pub mod dib;
 mod files;
+#[cfg(any(test, target_os = "ios"))]
+mod ios;
+#[cfg(target_os = "ios")]
+pub use ios::IosClipboard;
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -680,15 +684,15 @@ impl LocalClipboard for SystemClipboard {
     }
 }
 
-/// An in-memory clipboard (tests, and platforms without clipboard access).
-#[cfg(any(test, mobile))]
+/// An in-memory clipboard (tests, and platforms without clipboard access yet: Android).
+#[cfg(any(test, all(mobile, not(target_os = "ios"))))]
 #[derive(Default)]
 pub struct MemoryClipboard {
     content: Mutex<Snapshot>,
     changes: std::sync::atomic::AtomicU64,
 }
 
-#[cfg(any(test, mobile))]
+#[cfg(any(test, all(mobile, not(target_os = "ios"))))]
 impl MemoryClipboard {
     pub fn set(&self, snapshot: Snapshot) {
         if let Ok(mut content) = self.content.lock() {
@@ -705,7 +709,7 @@ impl MemoryClipboard {
     }
 }
 
-#[cfg(any(test, mobile))]
+#[cfg(any(test, all(mobile, not(target_os = "ios"))))]
 impl LocalClipboard for MemoryClipboard {
     fn change_count(&self) -> Option<u64> {
         Some(self.changes.load(Ordering::Relaxed))

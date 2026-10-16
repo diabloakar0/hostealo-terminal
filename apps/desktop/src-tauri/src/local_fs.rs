@@ -19,9 +19,16 @@ pub struct LocalListing {
 }
 
 fn home() -> PathBuf {
-    std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" })
+    let home = std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" })
         .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("/"))
+        .unwrap_or_else(|| PathBuf::from("/"));
+    // On iOS HOME is the app's sandbox; its Documents folder is the one the Files app shows.
+    if cfg!(target_os = "ios") {
+        let documents = home.join("Documents");
+        let _ = std::fs::create_dir_all(&documents);
+        return documents;
+    }
+    home
 }
 
 /// `~` and `~/...` to the home folder.

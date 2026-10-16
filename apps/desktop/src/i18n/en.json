@@ -316,7 +316,8 @@
     "sharedFolderShort": "Folder",
     "audioPlaying": "Sound: arriving from the server and playing here",
     "audioFailed": "Sound: arriving but it cannot be played here ({{error}})",
-    "audioWaiting": "Sound: the server has sent none yet (play something in Windows; if it stays like this, check that the “Windows Audio” service is running)"
+    "audioWaiting": "Sound: the server has sent none yet (play something in Windows; if it stays like this, check that the “Windows Audio” service is running)",
+    "keyboard": "Keyboard"
   },
   "ai": {
     "title": "AI assistant",

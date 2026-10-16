@@ -169,7 +169,7 @@ export default function App() {
         </div>
       )}
 
-      <main className="v2-shell-main flex min-w-0 flex-1 flex-col overflow-hidden max-md:rounded-none! max-md:border-0! md:my-2 md:mr-2">
+      <main className="v2-shell-main flex min-w-0 flex-1 flex-col overflow-hidden compact:rounded-none! compact:border-0! roomy:my-2 roomy:mr-2">
         <TabBar />
 
         <div className="relative min-h-0 flex-1">

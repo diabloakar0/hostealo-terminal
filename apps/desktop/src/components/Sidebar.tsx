@@ -40,13 +40,13 @@ export function Sidebar(props: SidebarProps) {
   const connected = useTabs((s) => new Set(s.tabs.filter((tab) => tab.hostId && tab.status === "connected").map((tab) => tab.hostId)).size);
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col p-2 max-md:h-full max-md:w-full">
+    <aside className="flex w-64 shrink-0 flex-col p-2 compact:h-full compact:w-full">
       {/* On macOS the traffic lights sit over this strip; it doubles as a window drag handle. */}
       {isMac && !isIOS && <div data-tauri-drag-region className="h-8 shrink-0" />}
 
       <BrandMenu />
 
-      <nav className="mt-3 flex-1 space-y-5 overflow-x-hidden overflow-y-auto text-sm">
+      <nav className="mt-3 min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto text-sm">
         <Group title={t("sidebar.sessions")}>
           {hasLocalShell && (
             <NavItem icon={<SquareTerminal />} onClick={props.onNewLocal}>

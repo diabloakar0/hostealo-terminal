@@ -51,7 +51,7 @@ export function TabBar() {
   return (
     <div data-tauri-drag-region className="flex h-11 shrink-0 items-center gap-1 border-b border-border px-2">
       {/* Phone-sized screens: the sidebar is a drawer behind this button. */}
-      <Button variant="ghost" size="icon" className="md:hidden" onClick={() => useUi.getState().setSidebarOpen(true)} aria-label={t("sidebar.open")}>
+      <Button variant="ghost" size="icon" className="roomy:hidden" onClick={() => useUi.getState().setSidebarOpen(true)} aria-label={t("sidebar.open")}>
         <Menu className="size-4" />
       </Button>
       <div role="tablist" className="flex min-w-0 items-center gap-1 overflow-x-auto">
@@ -89,7 +89,7 @@ export function TabBar() {
       {(activeTab?.kind === "ssh" || activeTab?.kind === "rdp") && activeTab.hostId && (
         <Button size="sm" onClick={() => openSftp(activeTab.hostId!)} title={t("sidebar.sftp")}>
           <FolderOpen className="size-3.5" />
-          <span className="max-md:hidden">SFTP</span>
+          <span className="compact:hidden">SFTP</span>
         </Button>
       )}
       {activeTab?.kind === "rdp" && <RdpToolbar tab={activeTab} />}
@@ -102,7 +102,7 @@ export function TabBar() {
         aria-pressed={assistantOpen}
       >
         <Sparkles className="size-3.5 text-accent" />
-        <span className="max-md:hidden">{t("ai.short")}</span>
+        <span className="compact:hidden">{t("ai.short")}</span>
       </Button>
     </div>
   );
