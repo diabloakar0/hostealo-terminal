@@ -5,7 +5,7 @@ import { cn } from "@hostealo/ui/cn";
 
 import { isMac } from "../lib/format";
 import { rdpClipboardSync, rdpClose, rdpConnect, rdpInput, rdpResize, type RdpClipboardNotice, type RdpInput } from "../lib/ipc";
-import { registerRdp } from "../lib/rdpSessions";
+import { registerRdp, useRdpAudio } from "../lib/rdpSessions";
 import { CTRL_ALT_DEL, SCANCODES } from "../lib/scancodes";
 import { useHostAccent } from "../hooks/useHostColor";
 import { usePrompts } from "../store/prompts";
@@ -74,6 +74,7 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
     setError(null);
     setRemoteSize(null);
     setClipboardNotice(null);
+    useRdpAudio.getState().set(tab.id, { state: "waiting" });
     tabs.setStatus(tab.id, "connecting");
 
     const draw = (data: Uint8Array) => {
@@ -122,7 +123,9 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
       },
       onDisplay: (event) => {
         if (disposed) return;
-        if (event.type === "clipboard") {
+        if (event.type === "audio") {
+          useRdpAudio.getState().set(tab.id, event.playing ? { state: "playing" } : { state: "failed", error: event.error ?? "" });
+        } else if (event.type === "clipboard") {
           setClipboardNotice(event.notice);
         } else if (event.type === "size") {
           const canvas = canvasRef.current;

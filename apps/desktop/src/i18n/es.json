@@ -309,7 +309,10 @@
     "reconnects": "reconecta",
     "sharedFolderExplain": "Comparte una carpeta de este equipo y aparecerá en Windows como la unidad «Hostealo», para pasar archivos en los dos sentidos.",
     "shareFolder": "Compartir una carpeta…",
-    "sharedFolderShort": "Carpeta"
+    "sharedFolderShort": "Carpeta",
+    "audioPlaying": "Sonido: llega del servidor y suena en este equipo",
+    "audioFailed": "Sonido: llega del servidor pero no se puede reproducir aquí ({{error}})",
+    "audioWaiting": "Sonido: el servidor aún no ha enviado nada (reproduce algo en Windows; si sigue así, revisa que el servicio «Audio de Windows» esté en marcha)"
   },
   "ai": {
     "title": "Asistente de IA",

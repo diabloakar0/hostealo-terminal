@@ -11,6 +11,7 @@ mod monitor;
 #[cfg(desktop)]
 mod pty;
 mod rdp;
+mod rdp_audio;
 mod rdp_clipboard;
 mod rdp_drive;
 mod secrets;

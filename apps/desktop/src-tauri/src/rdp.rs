@@ -103,6 +103,11 @@ pub enum DisplayEvent {
     Clipboard {
         notice: Notice,
     },
+    /// Remote sound started playing here, or could not (`error`).
+    Audio {
+        playing: bool,
+        error: Option<String>,
+    },
 }
 
 enum Command {
@@ -669,16 +674,38 @@ async fn active_session(
     }
 }
 
-/// Plays remote audio on this computer's speakers.
+/// Plays remote audio on this computer's speakers, telling the UI when it starts (or fails).
 #[cfg(desktop)]
-fn native_audio() -> Option<Box<dyn RdpsndClientHandler>> {
-    Some(Box::new(ironrdp_rdpsnd_native::cpal::RdpsndBackend::new()))
+fn native_audio(
+    on_display: &Channel<DisplayEvent>,
+) -> impl Fn() -> Option<Box<dyn RdpsndClientHandler>> + use<> {
+    let on_display = on_display.clone();
+    move || {
+        let on_display = on_display.clone();
+        Some(
+            Box::new(crate::rdp_audio::Speaker::new(Box::new(move |status| {
+                let event = match status {
+                    crate::rdp_audio::AudioStatus::Playing => DisplayEvent::Audio {
+                        playing: true,
+                        error: None,
+                    },
+                    crate::rdp_audio::AudioStatus::Failed(error) => DisplayEvent::Audio {
+                        playing: false,
+                        error: Some(error),
+                    },
+                };
+                let _ = on_display.send(event);
+            }))) as Box<dyn RdpsndClientHandler>,
+        )
+    }
 }
 
 /// No audio backend on mobile yet.
 #[cfg(mobile)]
-fn native_audio() -> Option<Box<dyn RdpsndClientHandler>> {
-    None
+fn native_audio(
+    _on_display: &Channel<DisplayEvent>,
+) -> impl Fn() -> Option<Box<dyn RdpsndClientHandler>> + use<> {
+    || None
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -716,11 +743,12 @@ pub fn rdp_connect(
             let local: Arc<dyn LocalClipboard> =
                 Arc::new(crate::rdp_clipboard::MemoryClipboard::default());
             let (link, mut clipboard_events) = ClipboardLink::new(local);
+            let audio = native_audio(&on_display);
             let (connection, framed) = open(
                 &trust,
                 &connector,
                 &link.backend(),
-                &native_audio,
+                &audio,
                 width.max(200),
                 height.max(200),
             )

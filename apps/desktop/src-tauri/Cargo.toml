@@ -65,8 +65,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 [target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
 portable-pty = "0.9"
 # Plays remote desktop audio on the local speakers (CoreAudio, WASAPI, ALSA/PulseAudio).
-# Without the Opus codec (it needs the C libopus to build): servers send PCM instead.
-ironrdp-rdpsnd-native = { version = "0.4", default-features = false }
+# Remote desktop sound on this computer's speakers (see rdp_audio.rs).
+cpal = "0.16"
 # The OS clipboard (text, images and file lists), shared with remote desktop sessions.
 arboard = { version = "3.7", default-features = false, features = ["image-data"] }
 

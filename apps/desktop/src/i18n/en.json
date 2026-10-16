@@ -309,7 +309,10 @@
     "reconnects": "reconnects",
     "sharedFolderExplain": "Share a folder from this computer and it shows in Windows as the “Hostealo” drive, to move files both ways.",
     "shareFolder": "Share a folder…",
-    "sharedFolderShort": "Folder"
+    "sharedFolderShort": "Folder",
+    "audioPlaying": "Sound: arriving from the server and playing here",
+    "audioFailed": "Sound: arriving but it cannot be played here ({{error}})",
+    "audioWaiting": "Sound: the server has sent none yet (play something in Windows; if it stays like this, check that the “Windows Audio” service is running)"
   },
   "ai": {
     "title": "AI assistant",

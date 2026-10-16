@@ -421,7 +421,9 @@ export type RdpDisplayEvent =
   | { type: "size"; width: number; height: number }
   | { type: "pointerDefault" }
   | { type: "pointerHidden" }
-  | { type: "clipboard"; notice: RdpClipboardNotice };
+  | { type: "clipboard"; notice: RdpClipboardNotice }
+  /** Remote sound started playing here, or cannot be played (`error`). */
+  | { type: "audio"; playing: boolean; error: string | null };
 
 export type RdpInput =
   | { type: "mouseMove"; x: number; y: number }

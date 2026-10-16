@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 import { homeDir, join } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { ChevronDown, FolderOpen, FolderSymlink, Keyboard, X } from "lucide-react";
+import { ChevronDown, FolderOpen, FolderSymlink, Keyboard, Volume2, VolumeOff, VolumeX, X } from "lucide-react";
+import { cn } from "@hostealo/ui/cn";
 
 import { isMac } from "../lib/format";
-import { getRdp } from "../lib/rdpSessions";
+import { getRdp, useRdpAudio } from "../lib/rdpSessions";
 import { hostById, useHosts } from "../store/hosts";
 import type { Tab } from "../store/tabs";
 import { Button } from "./ui/Button";
@@ -41,8 +42,21 @@ export function RdpToolbar({ tab }: { tab: Tab }) {
   };
 
   const connected = tab.status === "connected";
+  const audio = useRdpAudio((s) => s.byTab[tab.id]) ?? { state: "waiting" as const };
   return (
     <>
+      {connected && (
+        <span
+          className={cn(
+            "grid size-8 shrink-0 place-items-center rounded-btn",
+            audio.state === "playing" ? "text-green" : audio.state === "failed" ? "text-red" : "text-fg-muted",
+          )}
+          title={audio.state === "playing" ? t("rdp.audioPlaying") : audio.state === "failed" ? t("rdp.audioFailed", { error: audio.error }) : t("rdp.audioWaiting")}
+          aria-label={audio.state === "playing" ? t("rdp.audioPlaying") : audio.state === "failed" ? t("rdp.audioFailed", { error: audio.error }) : t("rdp.audioWaiting")}
+        >
+          {audio.state === "playing" ? <Volume2 className="size-4" /> : audio.state === "failed" ? <VolumeX className="size-4" /> : <VolumeOff className="size-4" />}
+        </span>
+      )}
       <Button
         size="sm"
         variant={menu ? "secondary" : "ghost"}

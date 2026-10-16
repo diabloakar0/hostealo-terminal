@@ -1,3 +1,5 @@
+import { create } from "zustand";
+
 /**
  * Open remote desktop sessions by tab id, so controls outside the desktop (the tab bar) can act
  * on them without covering any part of the remote screen.
@@ -18,3 +20,11 @@ export function registerRdp(tabId: string, handle: RdpHandle): () => void {
 }
 
 export const getRdp = (tabId: string | null | undefined): RdpHandle | undefined => (tabId ? sessions.get(tabId) : undefined);
+
+/** The sound of each remote desktop tab: unknown until the server sends some. */
+export type RdpAudio = { state: "waiting" } | { state: "playing" } | { state: "failed"; error: string };
+
+export const useRdpAudio = create<{ byTab: Record<string, RdpAudio>; set: (tabId: string, audio: RdpAudio) => void }>((set) => ({
+  byTab: {},
+  set: (tabId, audio) => set((s) => ({ byTab: { ...s.byTab, [tabId]: audio } })),
+}));

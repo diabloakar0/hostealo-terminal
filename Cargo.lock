@@ -2635,10 +2635,10 @@ dependencies = [
  "argon2 0.5.3",
  "aws-lc-rs",
  "block2",
+ "cpal",
  "data-encoding",
  "hmac 0.13.0",
  "ironrdp",
- "ironrdp-rdpsnd-native",
  "ironrdp-tokio",
  "keyring",
  "mdns-sd",
@@ -3204,18 +3204,6 @@ dependencies = [
  "ironrdp-core",
  "ironrdp-pdu",
  "ironrdp-svc",
- "tracing",
-]
-
-[[package]]
-name = "ironrdp-rdpsnd-native"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ff7cb20b7f8b40ebe9f8800d0bd24f0e9e2017f433a834f1b564367cbf61ab3"
-dependencies = [
- "anyhow",
- "cpal",
- "ironrdp-rdpsnd",
  "tracing",
 ]
 
