@@ -2,6 +2,7 @@
 // shell (shell.ts), the assistant has prepared answers, and nothing ever leaves the page.
 // Built on its own with `npm run build:demo` (vite.demo.config.ts).
 
+import { isIOS } from "../lib/format";
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 
 import type { Host, HostsData, Snippet } from "../lib/ipc";
@@ -450,11 +451,12 @@ mockIPC(
 
       case "sync_listen":
         later(150, () =>
-          send(a.onEvent, { type: "listening", device: "MacBook-Pro", addresses: ["192.168.1.34:53211"], pairing: "hostealo-terminal://sync?a=192.168.1.34:53211&t=q7Zk2cP9vXn4LmR8sT1wYg" }),
+          send(a.onEvent, { type: "listening", device: isIOS ? "iPhone" : "MacBook-Pro", addresses: ["192.168.1.34:53211"], pairing: "hostealo-terminal://sync?a=192.168.1.34:53211&t=q7Zk2cP9vXn4LmR8sT1wYg" }),
         );
         return nextId++;
       case "sync_browse":
-        later(1400, () => send(a.onEvent, { type: "found", id: "iphone", name: "iPhone", address: "192.168.1.52:60412" }));
+        // On a phone the other device is the computer, and the other way round.
+        later(1400, () => send(a.onEvent, isIOS ? { type: "found", id: "mac", name: "MacBook-Pro", address: "192.168.1.52:60412" } : { type: "found", id: "iphone", name: "iPhone", address: "192.168.1.52:60412" }));
         return nextId++;
       case "sync_connect": {
         syncEvents = a.onEvent;

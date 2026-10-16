@@ -41,7 +41,6 @@ import { StatusDot, worstStatus } from "./StatusDot";
 import { Button } from "./ui/Button";
 import { Menu, type MenuAnchor, type MenuEntry } from "./ui/Menu";
 import { NameDialog } from "./ui/NameDialog";
-import { ImportDialog } from "./ImportDialog";
 import { hostOsId, OsIcon } from "./OsIcon";
 
 /** Drag-and-drop payload type for moving a host into a folder. */
@@ -111,7 +110,6 @@ export function HostTree(props: HostTreeProps) {
   const [dialog, setDialog] = useState<FolderDialog>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [menu, setMenu] = useState<{ anchor: MenuAnchor; entries: MenuEntry[] } | null>(null);
-  const importing = useUi((s) => s.importOpen);
   const setImporting = useUi((s) => s.setImportOpen);
   const [power, setPower] = useState<{ host: Host; action: PowerAction } | null>(null);
   const [resetting, setResetting] = useState<Host | null>(null);
@@ -309,7 +307,6 @@ export function HostTree(props: HostTreeProps) {
 
       {error && <p className="px-2 text-xs text-red">{error}</p>}
       {loaded && hosts.length === 0 && folders.length === 0 && !error && <EmptyHosts onNewHost={() => props.onNewHost(null)} onImport={() => setImporting(true)} />}
-      {importing && <ImportDialog onClose={() => setImporting(false)} />}
       {power && (
         <ConfirmDialog
           title={t(`hostealo.power.${power.action}Title`, { name: power.host.name })}

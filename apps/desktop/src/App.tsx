@@ -7,6 +7,8 @@ import { AiPanel } from "./components/AiPanel";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { HostDialog } from "./components/HostDialog";
 import { HostealoDialog } from "./components/HostealoDialog";
+import { ImportDialog } from "./components/ImportDialog";
+import { SyncDialog } from "./components/SyncDialog";
 import { KeysView } from "./components/KeysView";
 import { KnownHostsView } from "./components/KnownHostsView";
 import { AlertToasts } from "./components/AlertToasts";
@@ -75,6 +77,15 @@ export default function App() {
   }, []);
   const sidebarOpen = useUi((s) => s.sidebarOpen);
   const setSidebarOpen = useUi((s) => s.setSidebarOpen);
+  // Windows opened from the drawer (sync, import, search) close it, so it is not left behind.
+  const syncOpen = useUi((s) => s.syncOpen);
+  const importOpen = useUi((s) => s.importOpen);
+  const paletteOpen = useUi((s) => s.paletteOpen);
+  useEffect(() => {
+    if (syncOpen || importOpen || paletteOpen) setSidebarOpen(false);
+  }, [syncOpen, importOpen, paletteOpen, setSidebarOpen]);
+  // So does a session or page opened from it (its menus open Docker, SFTP...).
+  useEffect(() => setSidebarOpen(false), [activeId, setSidebarOpen]);
 
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
 
@@ -264,6 +275,9 @@ export default function App() {
 
       {settingsOpen && <SettingsDialog onClose={closeSettings} />}
       {hostealoOpen && <HostealoDialog onClose={() => useHostealo.getState().setDialogOpen(false)} />}
+      {/* Here and not in the sidebar, which on a phone is a drawer that closes. */}
+      {syncOpen && <SyncDialog onClose={() => useUi.getState().setSyncOpen(false)} />}
+      {importOpen && <ImportDialog onClose={() => useUi.getState().setImportOpen(false)} />}
 
       {hostDialog && (
         <HostDialog

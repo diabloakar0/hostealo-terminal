@@ -1,0 +1,3 @@
+/* Permission prompts in English. */
+"NSLocalNetworkUsageDescription" = "Hostealo Terminal connects to servers on your local network and looks for your other devices to sync your servers, without going through the internet.";
+"NSFaceIDUsageDescription" = "Hostealo Terminal uses Face ID to show a saved password and, if you turn it on, to unlock the app.";

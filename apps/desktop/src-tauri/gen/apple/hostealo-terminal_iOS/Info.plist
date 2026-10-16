@@ -47,7 +47,7 @@
 		<string>_hostealo-sync._tcp</string>
 	</array>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Hostealo Terminal te pide Face ID antes de mostrar una contraseña guardada.</string>
+	<string>Hostealo Terminal usa Face ID para mostrar una contraseña guardada y, si lo activas, para desbloquear la app.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>

@@ -1,0 +1,3 @@
+/* Avisos de permisos en español. */
+"NSLocalNetworkUsageDescription" = "Hostealo Terminal se conecta a los servidores de tu red local y busca tus otros dispositivos para sincronizar tus servidores, sin pasar por internet.";
+"NSFaceIDUsageDescription" = "Hostealo Terminal usa Face ID para mostrar una contraseña guardada y, si lo activas, para desbloquear la app.";

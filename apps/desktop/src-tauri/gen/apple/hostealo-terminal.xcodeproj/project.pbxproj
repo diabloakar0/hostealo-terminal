@@ -11,12 +11,14 @@
 		090CE4D3738B52E6724E1F30 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66BF566C5847CCD1ADD4DA09 /* QuartzCore.framework */; };
 		11EA7B069628D879D4A58A06 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 9D69FADC511D59199CB01D8A /* assets */; };
 		1F64A7ABC976BBE0549DCFE6 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 889169AD72208AB252FD41CC /* libapp.a */; };
+		1F95A4284F498A5CE6F8D2B0 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 53774747C6115A8809323C6B /* InfoPlist.strings */; };
 		3F9828D2D4E2C07002F70C54 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF4C851241E9EF10067E665E /* UIKit.framework */; };
 		40E32D51F86D44BA95D59787 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26463561F2A8F582A4C0B380 /* Assets.xcassets */; };
 		5F9DA60D0DF4739FC516E337 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CFC2ABA88F9BE57D2CE7DEC /* CoreGraphics.framework */; };
 		6CE34759832C3192624512B3 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A84667BE3BA9C84B8A46287 /* Metal.framework */; };
 		749EA537FFB54BEDB6E419CB /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A4EEC1F177B401D0B8918A6 /* WebKit.framework */; };
 		75904DE80468B982282B7D66 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AACC70F47FABB9024795B856 /* LaunchScreen.storyboard */; };
+		809320117E0845E3147F292F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B1B6469F3DF6B30B6C3CA9D0 /* PrivacyInfo.xcprivacy */; };
 		A0B31930630C5C0588D51852 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 926F8F36CA3996198BE622C6 /* main.mm */; };
 		E95DEC6062C1544393EE3CF9 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B386E86FBC29CE179FFC45DD /* Security.framework */; };
 /* End PBXBuildFile section */
@@ -28,6 +30,7 @@
 		0E2361D9430E15E6E4F4186F /* putty.rs */ = {isa = PBXFileReference; path = putty.rs; sourceTree = "<group>"; };
 		101AA6E1DFB957429618298A /* rdp_audio.rs */ = {isa = PBXFileReference; path = rdp_audio.rs; sourceTree = "<group>"; };
 		103FDC1E80B1E72CAE00817E /* rdp.rs */ = {isa = PBXFileReference; path = rdp.rs; sourceTree = "<group>"; };
+		1AFCE1F84476D8766292023A /* ios.rs */ = {isa = PBXFileReference; path = ios.rs; sourceTree = "<group>"; };
 		26463561F2A8F582A4C0B380 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		275147C93058D97432794929 /* device.rs */ = {isa = PBXFileReference; path = device.rs; sourceTree = "<group>"; };
 		2C41277237CF4501EB23A62E /* os.rs */ = {isa = PBXFileReference; path = os.rs; sourceTree = "<group>"; };
@@ -46,6 +49,7 @@
 		4DE6AFED59DD3AC33636755A /* mobaxterm.rs */ = {isa = PBXFileReference; path = mobaxterm.rs; sourceTree = "<group>"; };
 		4EC7F7CEEB3246FC4D7014A1 /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
 		5CFC2ABA88F9BE57D2CE7DEC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		636F35F952747C2CE01102D9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		66BF566C5847CCD1ADD4DA09 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		6C1AB0BF7AD4BB5A83F3A39C /* files.rs */ = {isa = PBXFileReference; path = files.rs; sourceTree = "<group>"; };
 		6E69780CDAB67765A1F785FF /* monitor.rs */ = {isa = PBXFileReference; path = monitor.rs; sourceTree = "<group>"; };
@@ -57,14 +61,17 @@
 		80DF8933D239C6ADB96FE60A /* ssh_keys.rs */ = {isa = PBXFileReference; path = ssh_keys.rs; sourceTree = "<group>"; };
 		8442750D6ED07DA9E648BF37 /* dib.rs */ = {isa = PBXFileReference; path = dib.rs; sourceTree = "<group>"; };
 		889169AD72208AB252FD41CC /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		906A9BA8CB61A97453DA07FF /* share.rs */ = {isa = PBXFileReference; path = share.rs; sourceTree = "<group>"; };
 		91EF6CBBEF28621823785192 /* sftp.rs */ = {isa = PBXFileReference; path = sftp.rs; sourceTree = "<group>"; };
 		926F8F36CA3996198BE622C6 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		95A9ACCB753970F149E9C1BD /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		99997ECEAF83860DE4774E15 /* filezilla.rs */ = {isa = PBXFileReference; path = filezilla.rs; sourceTree = "<group>"; };
 		9BD00F1F5DE660607DE5DDA7 /* exec.rs */ = {isa = PBXFileReference; path = exec.rs; sourceTree = "<group>"; };
 		9D69FADC511D59199CB01D8A /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
 		A460836C1EEE9C65BE8E9706 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
 		AACC70F47FABB9024795B856 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B07867ABB1B30AEBACA2F047 /* keystore.rs */ = {isa = PBXFileReference; path = keystore.rs; sourceTree = "<group>"; };
+		B1B6469F3DF6B30B6C3CA9D0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B357DB707931B99695B77FAF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B386E86FBC29CE179FFC45DD /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		BF5282C1EE49BC7B39327C09 /* pty.rs */ = {isa = PBXFileReference; path = pty.rs; sourceTree = "<group>"; };
@@ -121,6 +128,7 @@
 			children = (
 				8442750D6ED07DA9E648BF37 /* dib.rs */,
 				6C1AB0BF7AD4BB5A83F3A39C /* files.rs */,
+				1AFCE1F84476D8766292023A /* ios.rs */,
 				7FB4EDDC30AA9EC3B5965E20 /* mod.rs */,
 				BF6BF039D415AFB7A4896D9D /* tests.rs */,
 			);
@@ -195,6 +203,7 @@
 				3F517A226668EEADE009178A /* rdp_drive.rs */,
 				103FDC1E80B1E72CAE00817E /* rdp.rs */,
 				D88EF69FFBE0A442385FC107 /* secrets.rs */,
+				906A9BA8CB61A97453DA07FF /* share.rs */,
 				80DF8933D239C6ADB96FE60A /* ssh_keys.rs */,
 				2D6126F3DA4FC1E48A6C3FA0 /* sync.rs */,
 				32C9E15DF5183D6ACD4F5F4B /* tls.rs */,
@@ -212,6 +221,8 @@
 			children = (
 				DAAD43CD74F9C747FFD001E5 /* hostealo-terminal_iOS.entitlements */,
 				B357DB707931B99695B77FAF /* Info.plist */,
+				B1B6469F3DF6B30B6C3CA9D0 /* PrivacyInfo.xcprivacy */,
+				53774747C6115A8809323C6B /* InfoPlist.strings */,
 			);
 			path = "hostealo-terminal_iOS";
 			sourceTree = "<group>";
@@ -262,6 +273,20 @@
 			);
 			sourceTree = "<group>";
 		};
+		"TEMP_9CDBA70B-D401-4133-A8C7-FCA236563045" /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = arm64;
+			sourceTree = "<group>";
+		};
+		"TEMP_FBB5AB9B-EA4C-4E64-87CE-28F1DCBAF9C7" /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = x86_64;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -305,6 +330,7 @@
 			knownRegions = (
 				Base,
 				en,
+				es,
 			);
 			mainGroup = D4775E07C9379B0C3C7B7FD5;
 			minimizedProjectReferenceProxies = 1;
@@ -324,7 +350,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				40E32D51F86D44BA95D59787 /* Assets.xcassets in Resources */,
+				1F95A4284F498A5CE6F8D2B0 /* InfoPlist.strings in Resources */,
 				75904DE80468B982282B7D66 /* LaunchScreen.storyboard in Resources */,
+				809320117E0845E3147F292F /* PrivacyInfo.xcprivacy in Resources */,
 				11EA7B069628D879D4A58A06 /* assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -365,6 +393,18 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		53774747C6115A8809323C6B /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				636F35F952747C2CE01102D9 /* en */,
+				95A9ACCB753970F149E9C1BD /* es */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		3DC23DCEEE549C20C22BBE18 /* debug */ = {

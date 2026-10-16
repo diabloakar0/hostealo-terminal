@@ -14,7 +14,6 @@ import { useSettings, type LanguagePreference, type ThemePreference } from "../s
 import { useTabs } from "../store/tabs";
 import { useUi } from "../store/ui";
 import { HostTree } from "./HostTree";
-import { SyncDialog } from "./SyncDialog";
 import { Logo } from "./Logo";
 import { Menu, type MenuAnchor } from "./ui/Menu";
 
@@ -34,7 +33,6 @@ interface SidebarProps {
 export function Sidebar(props: SidebarProps) {
   const { t } = useTranslation();
   const activeKind = useTabs((s) => s.tabs.find((tab) => tab.id === s.activeId)?.kind);
-  const syncing = useUi((s) => s.syncOpen);
   const setSyncing = useUi((s) => s.setSyncOpen);
   const activeAlerts = useAlerts((s) => s.alerts.filter((a) => a.active).length);
   const connected = useTabs((s) => new Set(s.tabs.filter((tab) => tab.hostId && tab.status === "connected").map((tab) => tab.hostId)).size);
@@ -82,7 +80,6 @@ export function Sidebar(props: SidebarProps) {
             {t("sync.title")}
           </NavItem>
         </Group>
-        {syncing && <SyncDialog onClose={() => setSyncing(false)} />}
       </nav>
 
       <SettingsMenu onOpenSettings={props.onOpenSettings} />

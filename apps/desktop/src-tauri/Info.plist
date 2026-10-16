@@ -9,9 +9,10 @@
   <array>
     <string>_hostealo-sync._tcp</string>
   </array>
-  <!-- iPhone and iPad: Face ID before showing a saved password (Touch ID needs no text). -->
+  <!-- iPhone and iPad: Face ID before showing a saved password or opening the locked app (Touch
+       ID needs no text). English and Spanish texts in gen/apple/hostealo-terminal_iOS/*.lproj. -->
   <key>NSFaceIDUsageDescription</key>
-  <string>Hostealo Terminal te pide Face ID antes de mostrar una contraseña guardada.</string>
+  <string>Hostealo Terminal usa Face ID para mostrar una contraseña guardada y, si lo activas, para desbloquear la app.</string>
   <!-- iPhone and iPad: the files downloaded over SFTP or FTP show up in the Files app. -->
   <key>UIFileSharingEnabled</key>
   <true/>

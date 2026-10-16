@@ -1,5 +1,6 @@
 name: hostealo-terminal
 options:
+  developmentLanguage: en
   bundleIdPrefix: es.hostealo.terminal
   deploymentTarget:
     iOS: 15.0
