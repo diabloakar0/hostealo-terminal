@@ -65,7 +65,8 @@ export function RdpToolbar({ tab }: { tab: Tab }) {
           size="sm"
           variant={keyboardOpen ? "secondary" : "ghost"}
           disabled={!connected}
-          onClick={() => useRdpKeyboard.getState().setOpen(keyboardOpen ? null : tab.id)}
+          // Focus in the tap itself, or iOS keeps its keyboard down.
+          onClick={() => (keyboardOpen ? getRdp(tab.id)?.closeKeyboard() : getRdp(tab.id)?.openKeyboard())}
           title={t("rdp.keyboard")}
           aria-pressed={keyboardOpen}
         >

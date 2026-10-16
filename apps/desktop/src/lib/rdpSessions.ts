@@ -8,6 +8,9 @@ export interface RdpHandle {
   sendCtrlAltDel: () => void;
   /** Connects again (for example after changing the shared folder). */
   reconnect: () => void;
+  /** Touch screens: shows the device keyboard. Call it from the tap itself (see RdpKeyboard). */
+  openKeyboard: () => void;
+  closeKeyboard: () => void;
 }
 
 const sessions = new Map<string, RdpHandle>();

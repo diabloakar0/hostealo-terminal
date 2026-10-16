@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 import { cn } from "@hostealo/ui/cn";
 
-import { isMac } from "../lib/format";
+import { isIOS, isMac } from "../lib/format";
 import { rdpClipboardSync, rdpClose, rdpConnect, rdpInput, rdpResize, type RdpClipboardNotice, type RdpInput } from "../lib/ipc";
 import { registerRdp, useRdpAudio } from "../lib/rdpSessions";
 import { createTouchGestures, useRdpKeyboard } from "../lib/rdpTouch";
@@ -40,6 +40,7 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
   const accent = useHostAccent(tab.hostId);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const keyFieldRef = useRef<HTMLTextAreaElement>(null);
   const sessionRef = useRef<number | null>(null);
   const queueRef = useRef<RdpInput[]>([]);
   const wheelRef = useRef(0);
@@ -209,6 +210,14 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
           canvasRef.current?.focus();
         },
         reconnect: () => setAttempt((n) => n + 1),
+        openKeyboard: () => {
+          keyFieldRef.current?.focus();
+          useRdpKeyboard.getState().setOpen(tab.id);
+        },
+        closeKeyboard: () => {
+          keyFieldRef.current?.blur();
+          useRdpKeyboard.getState().setOpen(null);
+        },
       }),
     [tab.id],
   );
@@ -350,8 +359,10 @@ export function RdpView({ tab, active }: { tab: Tab; active: boolean }) {
         )}
       </div>
 
-      {keyboardOpen && remoteSize && (
+      {isIOS && remoteSize && (
         <RdpKeyboard
+          field={keyFieldRef}
+          open={keyboardOpen}
           send={send}
           onClose={() => {
             useRdpKeyboard.getState().setOpen(null);
