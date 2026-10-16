@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { SquareTerminal } from "lucide-react";
+import { ChevronDown, ChevronUp, SquareTerminal } from "lucide-react";
+import { cn } from "@hostealo/ui/cn";
 
 import { AiPanel } from "./components/AiPanel";
 import { ConfirmDialog } from "./components/ConfirmDialog";
@@ -16,7 +17,7 @@ import { PromptDialog } from "./components/PromptDialog";
 import { useQuickCommands } from "./components/QuickCommands";
 import { CommandPalette } from "./components/CommandPalette";
 import { useUi } from "./store/ui";
-import { useCompact } from "./hooks/useCompact";
+import { useCompact, usePhoneLandscape } from "./hooks/useCompact";
 import { ResourceMonitor } from "./components/ResourceBar";
 import { RdpView } from "./components/RdpView";
 import { SettingsDialog } from "./components/SettingsDialog";
@@ -54,6 +55,9 @@ export default function App() {
   const [deleting, setDeleting] = useState<Host | null>(null);
   const assistantOpen = useAi((s) => s.open);
   const compact = useCompact();
+  const phoneLandscape = usePhoneLandscape();
+  // Remote desktop on a phone on its side: nothing but the desktop, the tab bar on demand.
+  const [chromeShown, setChromeShown] = useState(false);
   const sidebarOpen = useUi((s) => s.sidebarOpen);
   const setSidebarOpen = useUi((s) => s.setSidebarOpen);
 
@@ -136,6 +140,7 @@ export default function App() {
   };
 
   const activeTab = tabs.find((tab) => tab.id === activeId);
+  const immersive = phoneLandscape && activeTab?.kind === "rdp";
   const activeHost = activeTab?.kind === "ssh" ? hosts.find((h) => h.id === activeTab.hostId) : undefined;
   const activeAccent = useHostAccent(activeHost?.id ?? null);
 
@@ -169,8 +174,31 @@ export default function App() {
         </div>
       )}
 
-      <main className="v2-shell-main flex min-w-0 flex-1 flex-col overflow-hidden compact:rounded-none! compact:border-0! roomy:my-2 roomy:mr-2">
-        <TabBar />
+      <main className="v2-shell-main relative flex min-w-0 flex-1 flex-col overflow-hidden compact:rounded-none! compact:border-0! roomy:my-2 roomy:mr-2">
+        {!immersive ? (
+          <TabBar />
+        ) : (
+          <>
+            {/* Over the desktop, so showing it does not change the remote resolution. */}
+            {chromeShown && (
+              <div className="absolute inset-x-0 top-0 z-30 bg-card shadow-md">
+                <TabBar />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setChromeShown((shown) => !shown)}
+              aria-label={t(chromeShown ? "rdp.hideBar" : "rdp.showBar")}
+              aria-expanded={chromeShown}
+              className={cn(
+                "absolute left-1/2 z-40 grid h-6 w-14 -translate-x-1/2 place-items-center rounded-b-lg bg-black/45 text-white/90 backdrop-blur transition-[top]",
+                chromeShown ? "top-11" : "top-0",
+              )}
+            >
+              {chromeShown ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+            </button>
+          </>
+        )}
 
         <div className="relative min-h-0 flex-1">
           {tabs.map((tab) => (
