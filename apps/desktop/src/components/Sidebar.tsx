@@ -175,7 +175,7 @@ function BrandMenu() {
             { label: t("brand.clientArea"), icon: <ExternalLink />, onSelect: () => void openUrl("https://my.hostealo.com") },
             { label: t("brand.website"), icon: <Globe />, onSelect: () => void openUrl("https://hostealo.es") },
             { separator: true },
-            { label: t("brand.source"), icon: <ExternalLink />, onSelect: () => void openUrl("https://github.com/hostealo/hostealo-terminal") },
+            { label: t("brand.source"), icon: <ExternalLink />, onSelect: () => void openUrl("https://github.com/hostealo-org/hostealo-terminal") },
           ]}
         />
       )}
