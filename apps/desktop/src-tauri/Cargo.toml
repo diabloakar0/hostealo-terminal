@@ -74,6 +74,10 @@ portable-pty = "0.9"
 sysinfo = "0.37"
 # The OS clipboard (text, images and file lists), shared with remote desktop sessions.
 arboard = { version = "3.7", default-features = false, features = ["image-data"] }
+# Updates from GitHub Releases, signed with the project's updater key (lib/updates.ts); iOS
+# updates through the App Store.
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 
 # The clipboard change counters, so the RDP clipboard notices copies without reading them.
 [target.'cfg(target_os = "macos")'.dependencies]

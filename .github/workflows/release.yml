@@ -1,6 +1,10 @@
 # Builds the installers. Run by hand to test a build (the installers stay as artifacts of the run),
 # or push a version tag (v0.1.0) to also create the release as a draft with them attached.
 # macOS joins once its Developer ID certificate and notarization key are in the repo's secrets.
+#
+# Updates: the installers are signed with the updater key (TAURI_SIGNING_PRIVATE_KEY secret) and
+# latest.json lists them; the app reads it from the latest release, which is why releases are not
+# marked as pre-releases (GitHub's "latest" skips those).
 name: Release
 
 on:
@@ -57,13 +61,16 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
           projectPath: apps/desktop
           tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
           releaseName: Hostealo Terminal ${{ github.ref_name }}
           releaseBody: See the notes below.
           releaseDraft: true
-          prerelease: true
+          prerelease: false
+          includeUpdaterJson: true
 
       - name: Keep the installers as artifacts
         uses: actions/upload-artifact@v4
@@ -76,3 +83,4 @@ jobs:
             target/release/bundle/deb/*.deb
             target/release/bundle/rpm/*.rpm
             target/release/bundle/appimage/*.AppImage
+            target/release/bundle/**/*.sig

@@ -13,6 +13,8 @@ interface Settings {
   screenReader: boolean;
   /** Face ID / Touch ID (or the device password) to open the app and to come back to it. */
   appLock: boolean;
+  /** Look for a new version on start and every few hours (desktop; lib/updates.ts). */
+  checkUpdates: boolean;
   /** Folder paths collapsed in the sidebar. */
   collapsedFolders: string[];
   /** The file browser shows this computer's files next to the server's. */
@@ -41,6 +43,7 @@ const DEFAULTS: Settings = {
   highlightOutput: true,
   screenReader: false,
   appLock: false,
+  checkUpdates: true,
   collapsedFolders: [],
   filesShowLocal: true,
   hostealoSyncMinutes: 15,

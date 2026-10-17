@@ -149,6 +149,8 @@ pub fn run() {
     // A local shell is desktop-only.
     #[cfg(desktop)]
     let builder = builder
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(pty::PtyState::default())
         .invoke_handler(handler![
             pty::pty_spawn,

@@ -810,5 +810,21 @@
     "hint": "Use Face ID, Touch ID or the device password to get in.",
     "unlock": "Unlock",
     "reason": "Unlock Hostealo Terminal"
+  },
+  "updates": {
+    "title": "Updates",
+    "current": "Version {{version}}",
+    "auto": "Check for updates automatically",
+    "autoHint": "When the app opens and every few hours. Before anything is installed, the version is checked to be signed by Hostealo.",
+    "checkNow": "Check now",
+    "checking": "Checking…",
+    "upToDate": "You have the latest version.",
+    "available": "Version {{version}} available",
+    "install": "Update",
+    "later": "Not now",
+    "downloading": "Downloading version {{version}}…",
+    "restart": "Installed: restarting…",
+    "failed": "The update failed.",
+    "download": "Download it from the website"
   }
 }

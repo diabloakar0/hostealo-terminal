@@ -8,6 +8,7 @@ import { cn } from "@hostealo/ui/cn";
 
 import type { Host } from "../lib/ipc";
 import { hasLocalShell, isIOS, isMac } from "../lib/format";
+import { APP_VERSION } from "../lib/version";
 import { useAlerts } from "../store/alerts";
 import { useHostealo } from "../store/hostealo";
 import { useSettings, type LanguagePreference, type ThemePreference } from "../store/settings";
@@ -15,9 +16,8 @@ import { useTabs } from "../store/tabs";
 import { useUi } from "../store/ui";
 import { HostTree } from "./HostTree";
 import { Logo } from "./Logo";
+import { UpdateNotice } from "./UpdateNotice";
 import { Menu, type MenuAnchor } from "./ui/Menu";
-// The app's version, from the one place it is set (also what tauri.conf.json and Cargo.toml say).
-import { version as APP_VERSION } from "../../package.json";
 
 
 interface SidebarProps {
@@ -83,6 +83,7 @@ export function Sidebar(props: SidebarProps) {
         </Group>
       </nav>
 
+      <UpdateNotice />
       <SettingsMenu onOpenSettings={props.onOpenSettings} />
     </aside>
   );

@@ -482,6 +482,17 @@ mockIPC(
       }
       case "sync_qr_import":
         return new Promise((resolve) => later(700, () => resolve({ added: 6, updated: 0, deleted: 0, secrets: a.code ? 4 : 0 })));
+      // ?update: a new version is out (the sidebar notice, then the download).
+      case "plugin:updater|check":
+        return params.has("update") ? { rid: 7, currentVersion: "0.1.2", version: "0.1.3", date: null, body: "", rawJson: {} } : null;
+      case "plugin:updater|download_and_install": {
+        const total = 18_400_000;
+        send(a.onEvent, { event: "Started", data: { contentLength: total } });
+        for (let step = 1; step <= 10; step++) later(step * 250, () => send(a.onEvent, { event: "Progress", data: { chunkLength: total / 10 } }));
+        return new Promise((resolve) => later(2700, () => resolve(null)));
+      }
+      case "plugin:process|restart":
+        return new Promise(() => {});
       case "plugin:dialog|save":
         return "/Users/demo/Documents/hostealo-terminal.hostealo";
       case "plugin:dialog|open":

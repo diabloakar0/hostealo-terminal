@@ -32,6 +32,7 @@ import { Button } from "./components/ui/Button";
 import { useHostAccent } from "./hooks/useHostColor";
 import { useApplyPreferences } from "./hooks/usePreferences";
 import { startAlertWatch } from "./lib/alertWatch";
+import { startUpdateWatch } from "./lib/updates";
 import { hasLocalShell, isIOS, isMac } from "./lib/format";
 import { TouchKeys } from "./components/TouchKeys";
 import { LockScreen } from "./components/LockScreen";
@@ -92,6 +93,7 @@ export default function App() {
 
   useEffect(() => (hasLocalShell ? startLocalMonitor() : undefined), []);
   useEffect(() => startAlertWatch(), []);
+  useEffect(() => startUpdateWatch(), []);
   useEffect(() => {
     // The sync QR code scanned with the camera opens the app with a pairing link: at launch, or
     // while it runs (announced with an event). Taking it from the backend makes it count once.

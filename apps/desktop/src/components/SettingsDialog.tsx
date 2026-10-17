@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Minus, Plus, Settings } from "lucide-react";
+import { LoaderCircle, Minus, Plus, Settings } from "lucide-react";
 
 import { isIOS, isMac } from "../lib/format";
 import { deviceUnlock } from "../lib/ipc";
+import { canUpdate, useUpdates } from "../lib/updates";
+import { APP_VERSION } from "../lib/version";
 import { useSettings, type LanguagePreference, type ThemePreference } from "../store/settings";
 import { Button } from "./ui/Button";
 import { Checkbox, Segmented } from "./ui/Form";
@@ -92,6 +94,8 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
+        {canUpdate && <UpdatesSection />}
+
         <Section label={t("settingsAlerts.title")}>
           <Checkbox checked={alertsEnabled} onChange={(alertsEnabled) => update({ alertsEnabled })}>
             {t("settingsAlerts.enabled")}
@@ -134,6 +138,41 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
         </Section>
       </div>
     </Modal>
+  );
+}
+
+/** The version, automatic checks and a check by hand, with what it found. */
+function UpdatesSection() {
+  const { t } = useTranslation();
+  const checkUpdates = useSettings((s) => s.checkUpdates);
+  const update = useSettings((s) => s.update);
+  const status = useUpdates((s) => s.status);
+  const busy = status.kind === "checking" || status.kind === "downloading" || status.kind === "restart";
+  return (
+    <Section label={t("updates.title")}>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm text-fg-secondary">{t("updates.current", { version: APP_VERSION })}</span>
+        <Button size="sm" disabled={busy} onClick={() => void useUpdates.getState().check()}>
+          {status.kind === "checking" && <LoaderCircle className="size-3.5 animate-spin" />}
+          {status.kind === "checking" ? t("updates.checking") : t("updates.checkNow")}
+        </Button>
+      </div>
+      {status.kind === "upToDate" && <p className="text-xs text-green">{t("updates.upToDate")}</p>}
+      {status.kind === "available" && (
+        <div className="flex items-center justify-between gap-3 rounded-card border border-accent/40 bg-accent/10 px-3 py-2">
+          <span className="text-sm font-medium text-fg">{t("updates.available", { version: status.version })}</span>
+          <Button size="sm" variant="primary" onClick={() => void useUpdates.getState().install()}>
+            {t("updates.install")}
+          </Button>
+        </div>
+      )}
+      {status.kind === "downloading" && <p className="text-xs text-fg-muted">{t("updates.downloading", { version: status.version })}</p>}
+      {status.kind === "error" && <p className="break-words text-xs text-red">{status.message}</p>}
+      <Checkbox checked={checkUpdates} onChange={(checkUpdates) => update({ checkUpdates })}>
+        <span className="font-medium text-fg">{t("updates.auto")}</span>
+      </Checkbox>
+      <p className="pl-6 text-xs leading-relaxed text-fg-muted">{t("updates.autoHint")}</p>
+    </Section>
   );
 }
 

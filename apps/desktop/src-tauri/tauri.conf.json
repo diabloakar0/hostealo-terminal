@@ -47,7 +47,16 @@
       "icons/icon.ico"
     ],
     "iOS": {
-      "bundleVersion": "5"
+      "bundleVersion": "6"
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZERkM2QjBBMTBDN0Q4NjcKUldSbjJNY1FDbXY4L2F4dXRLc3Q1VElseC9lU3p2cUM3SUJ6NUFCVEQ2RzVCRlhzdy9FN2tlK3MK",
+      "endpoints": [
+        "https://github.com/hostealo-org/hostealo-terminal/releases/latest/download/latest.json"
+      ]
     }
   }
 }
