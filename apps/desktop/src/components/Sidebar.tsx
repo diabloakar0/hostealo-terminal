@@ -16,8 +16,9 @@ import { useUi } from "../store/ui";
 import { HostTree } from "./HostTree";
 import { Logo } from "./Logo";
 import { Menu, type MenuAnchor } from "./ui/Menu";
+// The app's version, from the one place it is set (also what tauri.conf.json and Cargo.toml say).
+import { version as APP_VERSION } from "../../package.json";
 
-const APP_VERSION = "0.1.0";
 
 interface SidebarProps {
   onNewLocal: () => void;
