@@ -47,7 +47,7 @@
       "icons/icon.ico"
     ],
     "iOS": {
-      "bundleVersion": "1"
+      "bundleVersion": "2"
     }
   }
 }
