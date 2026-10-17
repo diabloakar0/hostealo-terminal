@@ -13,6 +13,10 @@
        ID needs no text). English and Spanish texts in gen/apple/hostealo-terminal_iOS/*.lproj. -->
   <key>NSFaceIDUsageDescription</key>
   <string>Hostealo Terminal usa Face ID para mostrar una contraseña guardada y, si lo activas, para desbloquear la app.</string>
+  <!-- Export compliance: encryption only through standard algorithms (SSH, TLS), so App Store
+       Connect does not ask again for every build. -->
+  <key>ITSAppUsesNonExemptEncryption</key>
+  <false/>
   <!-- iPhone and iPad: the files downloaded over SFTP or FTP show up in the Files app. -->
   <key>UIFileSharingEnabled</key>
   <true/>

@@ -48,6 +48,8 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Hostealo Terminal usa Face ID para mostrar una contraseña guardada y, si lo activas, para desbloquear la app.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
