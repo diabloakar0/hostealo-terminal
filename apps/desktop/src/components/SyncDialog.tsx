@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { ArrowLeftRight, CircleCheck, FileLock2, Laptop, LoaderCircle, QrCode as QrIcon, ShieldCheck, Smartphone, Wifi } from "lucide-react";
+import { ArrowLeftRight, Camera, CircleCheck, FileLock2, Laptop, LoaderCircle, QrCode as QrIcon, ShieldCheck, Smartphone, Wifi } from "lucide-react";
 
 import {
+  localHome,
   MIN_BACKUP_PASSPHRASE,
+  shareFiles,
   syncBrowse,
   syncCancel,
   syncConfirm,
@@ -15,7 +17,9 @@ import {
   type SyncEvent,
   type SyncSummary,
 } from "../lib/ipc";
+import { isIOS } from "../lib/format";
 import { useHosts } from "../store/hosts";
+import { useUi } from "../store/ui";
 import { QrCode } from "./QrCode";
 import { Button } from "./ui/Button";
 import { CopyButton } from "./ui/CopyButton";
@@ -44,6 +48,10 @@ type BackupMode = "export" | "import";
 /**
  * Syncs hosts with another of the user's devices, with nothing in between: on the same network
  * (found automatically, or paired with the QR code / link), or through an encrypted backup file.
+ *
+ * An iPhone or iPad does not look for devices: iOS keeps apps from multicasting on the network
+ * without a special permission from Apple. It scans the computer's QR code with the camera
+ * instead, which opens the app with the pairing link (`syncLink`).
  */
 export function SyncDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
@@ -100,14 +108,25 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
       listenId = id;
       sessions.current.push(id);
     });
-    void syncBrowse(onEvent(() => undefined)).then((id) => sessions.current.push(id));
+    if (!isIOS) void syncBrowse(onEvent(() => undefined)).then((id) => sessions.current.push(id));
   };
 
   useEffect(() => {
-    start();
+    if (!useUi.getState().syncLink) start();
     return stop;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Opened from the QR code: straight to the device it names.
+  const syncLink = useUi((s) => s.syncLink);
+  useEffect(() => {
+    if (!syncLink) return;
+    useUi.getState().setSyncLink(null);
+    stop();
+    setMode("device");
+    connect(syncLink, t("sync.linkedDevice"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncLink]);
 
   const connect = (address: string, name: string) => {
     setStage({ kind: "connecting", name });
@@ -148,15 +167,16 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
 
   const exportBackup = async () => {
     const date = new Date().toISOString().slice(0, 10);
-    const path = await save({
-      defaultPath: `hostealo-terminal-${date}.hostealo`,
-      filters: [{ name: t("sync.backup.fileType"), extensions: ["hostealo"] }],
-    });
+    const name = `hostealo-terminal-${date}.hostealo`;
+    // iOS's save dialog can only place a file that already exists: the backup goes to the app's
+    // documents (in the Files app) and then to the share sheet (AirDrop, Files, Mail...).
+    const path = isIOS ? `${await localHome()}/${name}` : await save({ defaultPath: name, filters: [{ name: t("sync.backup.fileType"), extensions: ["hostealo"] }] });
     if (!path) return;
     setBusy(true);
     try {
       const summary = await syncExport(path, passphrase, includeSecrets);
       setStage({ kind: "exported", ...summary, path });
+      if (isIOS) void shareFiles([path]).catch(() => undefined);
     } catch (e) {
       setStage({ kind: "error", message: String(e) });
     } finally {
@@ -165,7 +185,8 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
   };
 
   const chooseFile = async () => {
-    const path = await open({ multiple: false, filters: [{ name: t("sync.backup.fileType"), extensions: ["hostealo"] }] });
+    // Any file on iOS, where a backup that arrived by AirDrop or Mail may not keep its type.
+    const path = await open({ multiple: false, filters: isIOS ? undefined : [{ name: t("sync.backup.fileType"), extensions: ["hostealo"] }] });
     if (typeof path === "string") setFile(path);
   };
 
@@ -250,73 +271,120 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
 
           {mode === "device" ? (
             <>
-              <p className="text-sm leading-relaxed text-fg-secondary">{t("sync.intro")}</p>
+              <p className="text-sm leading-relaxed text-fg-secondary">{t(isIOS ? "sync.introPhone" : "sync.intro")}</p>
 
-              <div className="flex gap-4 rounded-card border border-border bg-deep p-4">
-                <div className="grid size-[132px] shrink-0 place-items-center overflow-hidden rounded-btn bg-white">
-                  {me ? <QrCode text={me.pairing} className="size-full" /> : <LoaderCircle className="size-5 animate-spin text-[#0b1220]/40" />}
-                </div>
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-fg">
-                    <QrIcon className="size-4 text-accent" />
-                    {t("sync.qrTitle")}
-                  </p>
-                  <p className="text-xs leading-relaxed text-fg-muted">{t("sync.qrHint")}</p>
-                  {me && (
-                    <div className="mt-auto">
-                      <CopyButton text={me.pairing} label={t("sync.copyLink")} />
+              {isIOS ? (
+                <>
+                  <div className="flex gap-3 rounded-card border border-border bg-deep p-4">
+                    <Camera className="mt-0.5 size-5 shrink-0 text-accent" />
+                    <div className="flex min-w-0 flex-col gap-1.5">
+                      <p className="text-sm font-medium text-fg">{t("sync.scanTitle")}</p>
+                      <p className="text-sm leading-relaxed text-fg-muted">{t("sync.scanSteps")}</p>
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <div className="flex items-center gap-2 text-xs text-fg-muted">
-                <Wifi className="size-3.5 shrink-0 text-accent" />
-                {me ? t("sync.visibleAs", { name: me.device }) : t("sync.starting")} · {t("sync.visibleHint")}
-              </div>
+                  <form
+                    className="flex flex-col gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const value = manual.trim();
+                      if (value) connect(value, value.startsWith("hostealo-terminal://") ? t("sync.linkedDevice") : value);
+                    }}
+                  >
+                    <span className="text-sm font-medium text-fg">{t("sync.manualPhone")}</span>
+                    <div className="flex gap-2">
+                      <Input value={manual} onChange={(e) => setManual(e.target.value)} placeholder={t("sync.manualPlaceholder")} aria-label={t("sync.manualPhone")} className="font-mono" />
+                      <Button type="submit" disabled={!manual.trim()}>
+                        {t("sync.connect")}
+                      </Button>
+                    </div>
+                  </form>
 
-              <div className="flex flex-col gap-2">
-                <span className="flex items-center gap-2 text-sm font-medium text-fg">
-                  {t("sync.nearby")}
-                  <LoaderCircle className="size-3.5 animate-spin text-fg-muted" />
-                </span>
-                {devices.length === 0 ? (
-                  <p className="rounded-card border border-dashed border-border px-4 py-4 text-center text-sm text-fg-muted">{t("sync.none")}</p>
-                ) : (
-                  devices.map((device) => (
-                    <button
-                      key={device.id}
-                      type="button"
-                      onClick={() => connect(device.address, device.name)}
-                      className="flex cursor-pointer items-center gap-3 rounded-btn border border-border bg-card px-3 py-2.5 text-left shadow-sm transition-colors hover:bg-muted"
+                  <div className="flex flex-col gap-2 rounded-card border border-border px-4 py-3">
+                    <p className="text-xs leading-relaxed text-fg-muted">{t("sync.phoneLink")}</p>
+                    {me ? (
+                      <div>
+                        <CopyButton text={me.pairing} label={t("sync.copyLink")} />
+                      </div>
+                    ) : (
+                      <LoaderCircle className="size-4 animate-spin text-fg-muted" />
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex gap-4 rounded-card border border-border bg-deep p-4">
+                    <div className="grid size-[132px] shrink-0 place-items-center overflow-hidden rounded-btn bg-white">
+                      {me ? <QrCode text={me.pairing} className="size-full" /> : <LoaderCircle className="size-5 animate-spin text-[#0b1220]/40" />}
+                    </div>
+                    <div className="flex min-w-0 flex-col gap-1.5">
+                      <p className="flex items-center gap-1.5 text-sm font-medium text-fg">
+                        <QrIcon className="size-4 text-accent" />
+                        {t("sync.qrTitle")}
+                      </p>
+                      <p className="text-xs leading-relaxed text-fg-muted">{t("sync.qrHint")}</p>
+                      {me && (
+                        <div className="mt-auto">
+                          <CopyButton text={me.pairing} label={t("sync.copyLink")} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-fg-muted">
+                    <Wifi className="size-3.5 shrink-0 text-accent" />
+                    {me ? t("sync.visibleAs", { name: me.device }) : t("sync.starting")} · {t("sync.visibleHint")}
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <span className="flex items-center gap-2 text-sm font-medium text-fg">
+                      {t("sync.nearby")}
+                      <LoaderCircle className="size-3.5 animate-spin text-fg-muted" />
+                    </span>
+                    {devices.length === 0 ? (
+                      <p className="rounded-card border border-dashed border-border px-4 py-4 text-center text-sm text-fg-muted">{t("sync.none")}</p>
+                    ) : (
+                      devices.map((device) => (
+                        <button
+                          key={device.id}
+                          type="button"
+                          onClick={() => connect(device.address, device.name)}
+                          className="flex cursor-pointer items-center gap-3 rounded-btn border border-border bg-card px-3 py-2.5 text-left shadow-sm transition-colors hover:bg-muted"
+                        >
+                          <Laptop className="size-4 shrink-0 text-accent" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-medium text-fg">{device.name}</span>
+                            <span className="block font-mono text-xs text-fg-muted">{device.address.split(",")[0]}</span>
+                          </span>
+                          <span className="text-xs font-medium text-accent">{t("sync.connect")}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+
+                  <details className="text-sm">
+                    <summary className="cursor-pointer text-fg-muted hover:text-fg">{t("sync.manual")}</summary>
+                    <form
+                      className="mt-2 flex gap-2"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const value = manual.trim();
+                        if (value) connect(value, value.startsWith("hostealo-terminal://") ? t("sync.linkedDevice") : value);
+                      }}
                     >
-                      <Laptop className="size-4 shrink-0 text-accent" />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium text-fg">{device.name}</span>
-                        <span className="block font-mono text-xs text-fg-muted">{device.address}</span>
-                      </span>
-                      <span className="text-xs font-medium text-accent">{t("sync.connect")}</span>
-                    </button>
-                  ))
-                )}
-              </div>
+                      <Input value={manual} onChange={(e) => setManual(e.target.value)} placeholder={t("sync.manualPlaceholder")} className="font-mono" />
+                      <Button type="submit" disabled={!manual.trim()}>
+                        {t("sync.connect")}
+                      </Button>
+                    </form>
+                  </details>
+                </>
+              )}
 
-              <details className="text-sm">
-                <summary className="cursor-pointer text-fg-muted hover:text-fg">{t("sync.manual")}</summary>
-                <form
-                  className="mt-2 flex gap-2"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const value = manual.trim();
-                    if (value) connect(value, value.startsWith("hostealo-terminal://") ? t("sync.linkedDevice") : value);
-                  }}
-                >
-                  <Input value={manual} onChange={(e) => setManual(e.target.value)} placeholder={t("sync.manualPlaceholder")} className="font-mono" />
-                  <Button type="submit" disabled={!manual.trim()}>
-                    {t("sync.connect")}
-                  </Button>
-                </form>
-              </details>
+              <p className="flex gap-2 text-xs leading-relaxed text-fg-muted">
+                <Wifi className="mt-0.5 size-3.5 shrink-0 text-amber" />
+                {t("sync.networkHint")}
+              </p>
             </>
           ) : (
             <>
@@ -364,7 +432,7 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
                 <>
                   <div className="flex items-center gap-3 rounded-card border border-border bg-deep px-4 py-3">
                     <FileLock2 className="size-4 shrink-0 text-accent" />
-                    <span className="min-w-0 flex-1 truncate font-mono text-xs text-fg-secondary">{file ?? t("sync.backup.noFile")}</span>
+                    <span className="min-w-0 flex-1 truncate font-mono text-xs text-fg-secondary">{file ? decodeURIComponent(file.split("/").pop() ?? file) : t("sync.backup.noFile")}</span>
                     <Button size="sm" onClick={() => void chooseFile()}>
                       {t("sync.backup.choose")}
                     </Button>

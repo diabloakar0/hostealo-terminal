@@ -67,6 +67,7 @@ pub enum SyncEvent {
     Found {
         id: String,
         name: String,
+        /// `ip:port`, or several separated by commas (`sync_connect` tries each).
         address: String,
     },
     Lost {
@@ -446,7 +447,43 @@ impl Channel2 {
 // The exchange
 
 fn device_name() -> String {
-    crate::device::host_name().unwrap_or_else(|| "Hostealo Terminal".into())
+    crate::device::display_name().unwrap_or_else(|| "Hostealo Terminal".into())
+}
+
+/// Marks this app's own advertisements, so that browsing does not list this device.
+fn own_id() -> &'static str {
+    static ID: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    ID.get_or_init(|| uuid::Uuid::new_v4().simple().to_string())
+}
+
+/// An mDNS daemon that stops with its owner: dropping the crate's handle leaves its thread
+/// running, and with it the advertisement (the same device listed again every time the
+/// dialog opened).
+struct Mdns(mdns_sd::ServiceDaemon);
+
+impl Drop for Mdns {
+    fn drop(&mut self) {
+        let _ = self.0.shutdown();
+    }
+}
+
+/// The addresses of a device found on the network, the usual home and office ones first
+/// (192.168/16, then 10/8 and 172.16/12) and without link-local ones.
+fn found_addresses(ips: impl IntoIterator<Item = std::net::Ipv4Addr>, port: u16) -> Vec<String> {
+    let mut ips: Vec<_> = ips.into_iter().filter(|ip| !ip.is_link_local() && !ip.is_loopback()).collect();
+    ips.sort_by_key(|ip| match ip.octets() {
+        [192, 168, ..] => 0,
+        [10, ..] => 1,
+        [172, b, ..] if (16..32).contains(&b) => 2,
+        _ => 3,
+    });
+    ips.dedup();
+    ips.into_iter().map(|ip| format!("{ip}:{port}")).collect()
+}
+
+/// Whether `link` is a pairing link (opened from the QR code with the camera, for example).
+pub fn is_pairing_link(link: &str) -> bool {
+    link.trim().starts_with(PAIRING_PREFIX)
 }
 
 /// Where a side reads and writes its hosts and secrets (the app's store and the keychain, or
@@ -801,7 +838,7 @@ pub async fn sync_import(
     passphrase: String,
 ) -> Result<MergeSummary, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
+        let bytes = std::fs::read(crate::device::picked_path(&path)).map_err(|e| e.to_string())?;
         let backup = open_backup(&bytes, &passphrase)?;
         let store = AppStore(app);
         let local = store.load()?;
@@ -823,6 +860,23 @@ struct Pending {
 pub struct SyncState {
     sessions: Mutex<HashMap<u32, Pending>>,
     next_id: AtomicU32,
+    /// A pairing link the app was opened with, until the window takes it.
+    opened_link: Mutex<Option<String>>,
+}
+
+/// The app was opened with a pairing link (the QR code scanned with the camera): the window
+/// gets it now with the `sync-link` event, or asks for it once it has loaded.
+pub fn open_link(app: &AppHandle, link: String) {
+    if let Ok(mut opened) = app.state::<SyncState>().opened_link.lock() {
+        *opened = Some(link.clone());
+    }
+    let _ = tauri::Emitter::emit(app, "sync-link", link);
+}
+
+/// The pairing link the app was opened with, once.
+#[tauri::command]
+pub fn sync_opened_link(state: State<'_, SyncState>) -> Option<String> {
+    state.opened_link.lock().ok()?.take()
 }
 
 impl SyncState {
@@ -908,8 +962,8 @@ pub async fn sync_listen(
     });
 
     // Advertise; the advertisement ends with the daemon.
-    let daemon = mdns_sd::ServiceDaemon::new().ok();
-    if let Some(daemon) = &daemon {
+    let daemon = mdns_sd::ServiceDaemon::new().ok().map(Mdns);
+    if let Some(Mdns(daemon)) = &daemon {
         let instance = format!(
             "{device}-{}",
             uuid::Uuid::new_v4()
@@ -924,7 +978,7 @@ pub async fn sync_listen(
             &format!("{instance}.local."),
             "",
             port,
-            &[("name", device.as_str())][..],
+            &[("name", device.as_str()), ("id", own_id())][..],
         ) {
             let _ = daemon.register(info.enable_addr_auto());
         }
@@ -938,9 +992,7 @@ pub async fn sync_listen(
     };
     spawn_session(app, id, cancel, on_event, async move {
         let (stream, _) = listener.accept().await.map_err(|e| e.to_string())?;
-        if let Some(daemon) = daemon {
-            let _ = daemon.shutdown();
-        }
+        drop(daemon);
         exchange(stream, false, side).await
     });
     Ok(id)
@@ -953,17 +1005,22 @@ pub fn sync_browse(
     state: State<'_, SyncState>,
     on_event: Channel<SyncEvent>,
 ) -> Result<u32, String> {
-    let daemon = mdns_sd::ServiceDaemon::new().map_err(|e| e.to_string())?;
-    let receiver = daemon.browse(SERVICE_TYPE).map_err(|e| e.to_string())?;
+    let daemon = Mdns(mdns_sd::ServiceDaemon::new().map_err(|e| e.to_string())?);
+    let receiver = daemon.0.browse(SERVICE_TYPE).map_err(|e| e.to_string())?;
     let (id, _confirm, cancel) = state.open();
     let events = on_event.clone();
     spawn_session(app, id, cancel, on_event, async move {
         while let Ok(event) = receiver.recv_async().await {
             match event {
                 mdns_sd::ServiceEvent::ServiceResolved(service) => {
-                    let Some(ip) = service.get_addresses_v4().into_iter().next() else {
+                    if service.get_property_val_str("id") == Some(own_id()) {
                         continue;
-                    };
+                    }
+                    let addresses =
+                        found_addresses(service.get_addresses_v4(), service.get_port());
+                    if addresses.is_empty() {
+                        continue;
+                    }
                     let name = service
                         .get_property_val_str("name")
                         .unwrap_or(service.get_fullname())
@@ -971,7 +1028,7 @@ pub fn sync_browse(
                     let _ = events.send(SyncEvent::Found {
                         id: service.get_fullname().to_string(),
                         name,
-                        address: format!("{ip}:{}", service.get_port()),
+                        address: addresses.join(","),
                     });
                 }
                 mdns_sd::ServiceEvent::ServiceRemoved(_, fullname) => {
@@ -1000,7 +1057,15 @@ pub fn sync_connect(
         None if address.trim().starts_with(PAIRING_PREFIX) => {
             return Err("this pairing link is incomplete: copy it again".into());
         }
-        None => (vec![address.trim().to_string()], None),
+        // One address, or the several of a device found on the network.
+        None => (
+            address
+                .split(',')
+                .map(|a| a.trim().to_string())
+                .filter(|a| !a.is_empty())
+                .collect(),
+            None,
+        ),
     };
     let (id, confirm, cancel) = state.open();
     let side = Side {
@@ -1494,6 +1559,20 @@ mod tests {
         assert!(client.unwrap_err().contains("pairing link"));
         assert!(server.unwrap_err().contains("pairing link"));
         assert!(verified.is_empty());
+    }
+
+    #[test]
+    fn found_addresses_put_the_home_network_first() {
+        let ips = [
+            "100.64.0.7".parse().unwrap(),
+            "169.254.3.4".parse().unwrap(),
+            "10.8.0.2".parse().unwrap(),
+            "192.168.1.52".parse().unwrap(),
+        ];
+        assert_eq!(
+            found_addresses(ips, 5000),
+            ["192.168.1.52:5000", "10.8.0.2:5000", "100.64.0.7:5000"]
+        );
     }
 
     #[test]

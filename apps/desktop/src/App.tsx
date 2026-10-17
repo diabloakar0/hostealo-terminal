@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, SquareTerminal } from "lucide-react";
 import { cn } from "@hostealo/ui/cn";
+import { listen } from "@tauri-apps/api/event";
 
 import { AiPanel } from "./components/AiPanel";
 import { ConfirmDialog } from "./components/ConfirmDialog";
@@ -34,7 +35,7 @@ import { startAlertWatch } from "./lib/alertWatch";
 import { hasLocalShell, isIOS, isMac } from "./lib/format";
 import { TouchKeys } from "./components/TouchKeys";
 import { LockScreen } from "./components/LockScreen";
-import type { Host } from "./lib/ipc";
+import { syncOpenedLink, type Host } from "./lib/ipc";
 import { matchShortcut } from "./lib/shortcuts";
 import { useAi } from "./store/ai";
 import { useHostealo } from "./store/hostealo";
@@ -91,6 +92,14 @@ export default function App() {
 
   useEffect(() => (hasLocalShell ? startLocalMonitor() : undefined), []);
   useEffect(() => startAlertWatch(), []);
+  useEffect(() => {
+    // The sync QR code scanned with the camera opens the app with a pairing link: at launch, or
+    // while it runs (announced with an event). Taking it from the backend makes it count once.
+    const take = () => void syncOpenedLink().then((link) => link && useUi.getState().setSyncLink(link));
+    take();
+    const unlisten = listen("sync-link", take).catch(() => undefined);
+    return () => void unlisten.then((stop) => stop?.());
+  }, []);
   useEffect(() => {
     // The hosts first, then the Hostealo account brings its servers up to date.
     void useHosts

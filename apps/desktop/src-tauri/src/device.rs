@@ -22,6 +22,44 @@ pub fn host_name() -> Option<String> {
     }
 }
 
+/// The name to show for this device on others: the computer's name on a Mac ("MacBook Pro"),
+/// the kind of device on an iPhone or iPad (iOS keeps the name the user gave it private, and
+/// its host name is "localhost"), the host name elsewhere.
+pub fn display_name() -> Option<String> {
+    #[cfg(target_os = "macos")]
+    {
+        let computer = std::process::Command::new("/usr/sbin/scutil")
+            .args(["--get", "ComputerName"])
+            .output()
+            .ok()
+            .filter(|out| out.status.success())
+            .map(|out| String::from_utf8_lossy(&out.stdout).trim().to_string())
+            .filter(|name| !name.is_empty());
+        if computer.is_some() {
+            return computer;
+        }
+    }
+    #[cfg(target_os = "ios")]
+    {
+        // "iPhone15,2" on a device; the simulator reports the Mac's machine and names the
+        // simulated one in its environment.
+        let machine = std::env::var("SIMULATOR_MODEL_IDENTIFIER").unwrap_or_else(|_| {
+            let mut info = std::mem::MaybeUninit::<libc::utsname>::uninit();
+            // SAFETY: uname fills the struct before it is read, and its fields are NUL-terminated.
+            if unsafe { libc::uname(info.as_mut_ptr()) } != 0 {
+                return String::new();
+            }
+            let info = unsafe { info.assume_init() };
+            unsafe { std::ffi::CStr::from_ptr(info.machine.as_ptr()) }
+                .to_string_lossy()
+                .into_owned()
+        });
+        return Some(if machine.starts_with("iPad") { "iPad" } else { "iPhone" }.to_string());
+    }
+    #[allow(unreachable_code)]
+    host_name()
+}
+
 /// The IPv4 addresses of this device on its networks, without the loopback ones.
 pub fn local_ipv4() -> Vec<std::net::IpAddr> {
     #[cfg(desktop)]
@@ -41,6 +79,16 @@ pub fn local_ipv4() -> Vec<std::net::IpAddr> {
             .filter(|ip| ip.is_ipv4() && !ip.is_loopback())
             .collect()
     }
+}
+
+/// A path chosen in the file dialog. On iOS it comes as a `file://` URL (to a copy in the app's
+/// temporary folder); elsewhere it is already a path.
+pub fn picked_path(picked: &str) -> std::path::PathBuf {
+    tauri::Url::parse(picked)
+        .ok()
+        .filter(|url| url.scheme() == "file")
+        .and_then(|url| url.to_file_path().ok())
+        .unwrap_or_else(|| picked.into())
 }
 
 /// Total and available bytes of the disk holding `path`, when they can be read.
@@ -69,5 +117,19 @@ pub fn disk_space(path: &std::path::Path) -> Option<(u64, u64)> {
             u64::from(stat.f_blocks) * block,
             u64::from(stat.f_bavail) * block,
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn picked_paths_accept_file_urls() {
+        assert_eq!(
+            picked_path("file:///private/var/tmp/es.hostealo.terminal-Inbox/copia%20Mac.hostealo"),
+            std::path::Path::new("/private/var/tmp/es.hostealo.terminal-Inbox/copia Mac.hostealo")
+        );
+        assert_eq!(picked_path("/Users/ana/copia.hostealo"), std::path::Path::new("/Users/ana/copia.hostealo"));
     }
 }

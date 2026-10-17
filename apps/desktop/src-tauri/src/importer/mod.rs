@@ -249,7 +249,7 @@ pub fn import_read(
     let mut hosts = Vec::new();
     let mut warnings = Vec::new();
     for path in &paths {
-        let (found, parsed) = parse_path(Path::new(path))?;
+        let (found, parsed) = parse_path(&crate::device::picked_path(path))?;
         if format.is_some_and(|format| format != found) {
             return Err("choose files from one program at a time".into());
         }

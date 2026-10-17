@@ -54,5 +54,16 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>es.hostealo.terminal.sync</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>hostealo-terminal</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

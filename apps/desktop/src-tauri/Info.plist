@@ -9,6 +9,19 @@
   <array>
     <string>_hostealo-sync._tcp</string>
   </array>
+  <!-- Device sync's QR code holds a hostealo-terminal://sync link: scanned with the camera, it
+       opens the app, which connects to the device showing it. -->
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>es.hostealo.terminal.sync</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>hostealo-terminal</string>
+      </array>
+    </dict>
+  </array>
   <!-- iPhone and iPad: Face ID before showing a saved password or opening the locked app (Touch
        ID needs no text). English and Spanish texts in gen/apple/hostealo-terminal_iOS/*.lproj. -->
   <key>NSFaceIDUsageDescription</key>

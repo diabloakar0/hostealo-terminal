@@ -73,6 +73,7 @@ macro_rules! handler {
             sync::sync_cancel,
             sync::sync_export,
             sync::sync_import,
+            sync::sync_opened_link,
             ssh::ssh_resize,
             ssh::ssh_close,
             ssh::ssh_close_all,
@@ -157,6 +158,17 @@ pub fn run() {
     let builder = builder.invoke_handler(handler![]);
 
     builder
-        .run(tauri::generate_context!())
-        .expect("error while running Hostealo Terminal");
+        .build(tauri::generate_context!())
+        .expect("error while running Hostealo Terminal")
+        .run(|_app, _event| {
+            // The QR code of device sync scanned with the camera (or the link opened).
+            #[cfg(any(target_os = "macos", target_os = "ios"))]
+            if let tauri::RunEvent::Opened { urls } = _event {
+                for url in urls {
+                    if sync::is_pairing_link(url.as_str()) {
+                        sync::open_link(_app, url.to_string());
+                    }
+                }
+            }
+        });
 }

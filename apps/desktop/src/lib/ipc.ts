@@ -651,6 +651,8 @@ export const syncConnect = (address: string, onEvent: (event: SyncEvent) => void
 export const syncConfirm = (id: number, accepted: boolean, includeSecrets: boolean): Promise<void> =>
   invoke("sync_confirm", { id, accepted, includeSecrets });
 export const syncCancel = (id: number): Promise<void> => invoke("sync_cancel", { id });
+/** The pairing link the app was opened with (the QR code scanned with the camera), once. */
+export const syncOpenedLink = (): Promise<string | null> => invoke("sync_opened_link");
 
 export interface BackupSummary {
   hosts: number;

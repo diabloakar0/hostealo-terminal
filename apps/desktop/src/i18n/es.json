@@ -544,9 +544,9 @@
   },
   "sync": {
     "title": "Sincronizar dispositivos",
-    "intro": "Abre esta ventana también en el otro dispositivo. En la misma red (Wi-Fi o cable) se encuentran solos; si no, escanea el código QR. Nada pasa por internet.",
+    "intro": "Abre esta ventana también en el otro dispositivo. En la misma red (Wi-Fi o cable) se encuentran solos; si no, usa el código QR. Nada pasa por internet.",
     "starting": "Preparando…",
-    "visibleAs": "Este equipo es visible como «{{name}}»",
+    "visibleAs": "Este dispositivo es visible como «{{name}}»",
     "visibleHint": "solo mientras esta ventana está abierta",
     "nearby": "Dispositivos cercanos",
     "none": "Buscando… abre «Sincronizar dispositivos» en el otro dispositivo.",
@@ -570,7 +570,7 @@
     "modeDevice": "Otro dispositivo",
     "modeBackup": "Copia cifrada",
     "qrTitle": "Empareja con el código QR",
-    "qrHint": "Escanéalo con la app en el móvil. En otro ordenador, copia el enlace y pégalo allí en «¿No aparece?». Así se conectan aunque la red no deje que se vean, y no hace falta comparar códigos.",
+    "qrHint": "Escanéalo con la cámara del iPhone o el iPad: se abre la app y se conectan sin comparar códigos. En otro ordenador, copia el enlace y pégalo allí en «¿No aparece?».",
     "copyLink": "Copiar enlace",
     "manualPlaceholder": "hostealo-terminal://sync?… o 192.168.1.20:53211",
     "linkedDevice": "el otro dispositivo",
@@ -599,7 +599,13 @@
       "savedSecrets_one": "Con {{count}} contraseña.",
       "savedSecrets_other": "Con {{count}} contraseñas.",
       "keepPassphrase": "Guarda la contraseña en un lugar seguro: sin ella no se puede abrir."
-    }
+    },
+    "scanTitle": "Escanea el código QR del ordenador",
+    "scanSteps": "En el ordenador, abre Hostealo Terminal y «Sincronizar dispositivos». Luego abre la app Cámara, apunta al código QR y toca «Abrir en Hostealo Terminal».",
+    "phoneLink": "¿Prefieres empezar desde el ordenador? Copia el enlace de este dispositivo y pégalo allí en «¿No aparece?».",
+    "networkHint": "Los dos dispositivos tienen que poder verse en la red: si uno va por una VPN o por otra Wi-Fi, no se conectan. En ese caso usa «Copia cifrada».",
+    "manualPhone": "Pega el enlace o la dirección",
+    "introPhone": "Pasa tus servidores entre el ordenador y este dispositivo directamente por tu red: nada pasa por internet."
   },
   "snippets": {
     "title": "Comandos rápidos",

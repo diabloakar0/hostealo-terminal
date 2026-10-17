@@ -544,9 +544,9 @@
   },
   "sync": {
     "title": "Sync devices",
-    "intro": "Open this window on the other device too. On the same network (Wi-Fi or cable) they find each other; if not, scan the QR code. Nothing goes through the internet.",
+    "intro": "Open this window on the other device too. On the same network (Wi-Fi or cable) they find each other; if not, use the QR code. Nothing goes through the internet.",
     "starting": "Getting ready…",
-    "visibleAs": "This computer is visible as “{{name}}”",
+    "visibleAs": "This device is visible as “{{name}}”",
     "visibleHint": "only while this window is open",
     "nearby": "Nearby devices",
     "none": "Looking… open “Sync devices” on the other device.",
@@ -570,7 +570,7 @@
     "modeDevice": "Another device",
     "modeBackup": "Encrypted backup",
     "qrTitle": "Pair with the QR code",
-    "qrHint": "Scan it with the phone app. On another computer, copy the link and paste it there under “Not listed?”. They connect even when the network hides them from each other, with no codes to compare.",
+    "qrHint": "Scan it with the iPhone or iPad camera: the app opens and they connect with no codes to compare. On another computer, copy the link and paste it there under “Not listed?”.",
     "copyLink": "Copy link",
     "manualPlaceholder": "hostealo-terminal://sync?… or 192.168.1.20:53211",
     "linkedDevice": "the other device",
@@ -599,7 +599,13 @@
       "savedSecrets_one": "With {{count}} password.",
       "savedSecrets_other": "With {{count}} passwords.",
       "keepPassphrase": "Keep the passphrase somewhere safe: without it the backup cannot be opened."
-    }
+    },
+    "scanTitle": "Scan the computer's QR code",
+    "scanSteps": "On the computer, open Hostealo Terminal and “Sync devices”. Then open the Camera app, point it at the QR code and tap “Open in Hostealo Terminal”.",
+    "phoneLink": "Rather start from the computer? Copy this device's link and paste it there under “Not listed?”.",
+    "networkHint": "Both devices must be able to reach each other on the network: if one is on a VPN or another Wi-Fi, they won't connect. Use “Encrypted backup” then.",
+    "manualPhone": "Paste the link or the address",
+    "introPhone": "Move your servers between the computer and this device directly over your network: nothing goes through the internet."
   },
   "snippets": {
     "title": "Quick commands",
