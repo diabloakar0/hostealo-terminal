@@ -4,5 +4,13 @@
   "description": "Mobile-only plugins for the main window",
   "windows": ["main"],
   "platforms": ["iOS", "android"],
-  "permissions": ["haptics:allow-selection-feedback", "haptics:allow-impact-feedback"]
+  "permissions": [
+    "haptics:allow-selection-feedback",
+    "haptics:allow-impact-feedback",
+    "barcode-scanner:allow-scan",
+    "barcode-scanner:allow-cancel",
+    "barcode-scanner:allow-check-permissions",
+    "barcode-scanner:allow-request-permissions",
+    "barcode-scanner:allow-open-app-settings"
+  ]
 }

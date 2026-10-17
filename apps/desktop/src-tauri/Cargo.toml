@@ -32,6 +32,8 @@ tauri-plugin-notification = "2"
 hmac = "0.13"
 sha1 = "0.11"
 data-encoding = "2"
+# Compresses the servers passed over in QR codes (sync/qr.rs).
+flate2 = "1"
 russh-sftp = "3"
 rand = "0.10"
 suppaftp = { version = "12", features = ["tokio-rustls-aws-lc-rs"] }
@@ -87,9 +89,11 @@ objc2 = "0.6"
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_System_DataExchange"] }
 
-# A light tap on the touch key bars (iPhone and iPad; lib/haptics.ts).
+# A light tap on the touch key bars (iPhone and iPad; lib/haptics.ts), and the camera reading
+# the QR codes a computer shows to pass its servers over (QrReceive.tsx).
 [target.'cfg(any(target_os = "ios", target_os = "android"))'.dependencies]
 tauri-plugin-haptics = "2"
+tauri-plugin-barcode-scanner = "2"
 
 # iOS keychain: `keyring` only picks a credential store on desktop, so on iOS the app sets the
 # "protected data" store itself (see keystore.rs).

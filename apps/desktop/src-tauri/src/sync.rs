@@ -39,6 +39,8 @@ use tokio::sync::{oneshot, watch};
 use crate::hosts::{Host, HostStore, HostsData, Snippet, Tombstone};
 use crate::secrets::{self, SecretKind};
 
+pub mod qr;
+
 const SERVICE_TYPE: &str = "_hostealo-sync._tcp.local.";
 const PROTOCOL_VERSION: u32 = 1;
 /// Largest message accepted (a few thousand hosts fit easily).
@@ -470,7 +472,10 @@ impl Drop for Mdns {
 /// The addresses of a device found on the network, the usual home and office ones first
 /// (192.168/16, then 10/8 and 172.16/12) and without link-local ones.
 fn found_addresses(ips: impl IntoIterator<Item = std::net::Ipv4Addr>, port: u16) -> Vec<String> {
-    let mut ips: Vec<_> = ips.into_iter().filter(|ip| !ip.is_link_local() && !ip.is_loopback()).collect();
+    let mut ips: Vec<_> = ips
+        .into_iter()
+        .filter(|ip| !ip.is_link_local() && !ip.is_loopback())
+        .collect();
     ips.sort_by_key(|ip| match ip.octets() {
         [192, 168, ..] => 0,
         [10, ..] => 1,
@@ -762,39 +767,69 @@ fn seal_backup(backup: &Backup, passphrase: &str) -> Result<Vec<u8>, String> {
             "the passphrase needs at least {MIN_PASSPHRASE} characters"
         ));
     }
+    seal(
+        BACKUP_MAGIC,
+        serde_json::to_vec(backup).map_err(|e| e.to_string())?,
+        passphrase,
+    )
+}
+
+fn open_backup(bytes: &[u8], passphrase: &str) -> Result<Backup, String> {
+    let plain = unseal(BACKUP_MAGIC, bytes, passphrase).map_err(|e| match e {
+        Unsealed::NotOurs => {
+            "this is not a Hostealo Terminal backup, or it is from a newer version".to_string()
+        }
+        Unsealed::Damaged => "the file is damaged".into(),
+        Unsealed::WrongKey => "wrong passphrase, or the file is damaged".into(),
+    })?;
+    serde_json::from_slice(&plain).map_err(|e| format!("the file is damaged: {e}"))
+}
+
+/// `magic`, a salt, a nonce and `plain` encrypted with a key derived from `passphrase` (the
+/// magic is also authenticated): backup files and the QR code transfers.
+fn seal(magic: &[u8; 8], mut plain: Vec<u8>, passphrase: &str) -> Result<Vec<u8>, String> {
     let rng = SystemRandom::new();
     let mut salt = [0u8; BACKUP_SALT];
     let mut nonce = [0u8; BACKUP_NONCE];
     rng.fill(&mut salt)
         .and_then(|_| rng.fill(&mut nonce))
         .map_err(|_| "no randomness".to_string())?;
-    let mut data = serde_json::to_vec(backup).map_err(|e| e.to_string())?;
     backup_key(passphrase, &salt)?
         .seal_in_place_append_tag(
             Nonce::assume_unique_for_key(nonce),
-            Aad::from(BACKUP_MAGIC),
-            &mut data,
+            Aad::from(magic),
+            &mut plain,
         )
         .map_err(|_| "encryption failed".to_string())?;
-    Ok([BACKUP_MAGIC.as_slice(), &salt, &nonce, &data].concat())
+    Ok([magic.as_slice(), &salt, &nonce, &plain].concat())
 }
 
-fn open_backup(bytes: &[u8], passphrase: &str) -> Result<Backup, String> {
+/// Why something sealed did not open.
+#[derive(Debug, PartialEq)]
+enum Unsealed {
+    /// Another kind of data, or a newer format.
+    NotOurs,
+    Damaged,
+    /// The wrong passphrase (or damaged data: the two cannot be told apart).
+    WrongKey,
+}
+
+fn unseal(magic: &[u8; 8], bytes: &[u8], passphrase: &str) -> Result<Vec<u8>, Unsealed> {
     let rest = bytes
-        .strip_prefix(BACKUP_MAGIC.as_slice())
-        .ok_or("this is not a Hostealo Terminal backup, or it is from a newer version")?;
+        .strip_prefix(magic.as_slice())
+        .ok_or(Unsealed::NotOurs)?;
     if rest.len() < BACKUP_SALT + BACKUP_NONCE {
-        return Err("the file is damaged".into());
+        return Err(Unsealed::Damaged);
     }
     let (salt, rest) = rest.split_at(BACKUP_SALT);
     let (nonce, sealed) = rest.split_at(BACKUP_NONCE);
     let mut data = sealed.to_vec();
-    let nonce =
-        Nonce::try_assume_unique_for_key(nonce).map_err(|_| "the file is damaged".to_string())?;
-    let plain = backup_key(passphrase, salt)?
-        .open_in_place(nonce, Aad::from(BACKUP_MAGIC), &mut data)
-        .map_err(|_| "wrong passphrase, or the file is damaged".to_string())?;
-    serde_json::from_slice(plain).map_err(|e| format!("the file is damaged: {e}"))
+    let nonce = Nonce::try_assume_unique_for_key(nonce).map_err(|_| Unsealed::Damaged)?;
+    let key = backup_key(passphrase, salt).map_err(|_| Unsealed::Damaged)?;
+    let plain = key
+        .open_in_place(nonce, Aad::from(magic), &mut data)
+        .map_err(|_| Unsealed::WrongKey)?;
+    Ok(plain.to_vec())
 }
 
 /// Saves every host (and, if asked, the saved passwords) to an encrypted backup file.
@@ -1016,8 +1051,7 @@ pub fn sync_browse(
                     if service.get_property_val_str("id") == Some(own_id()) {
                         continue;
                     }
-                    let addresses =
-                        found_addresses(service.get_addresses_v4(), service.get_port());
+                    let addresses = found_addresses(service.get_addresses_v4(), service.get_port());
                     if addresses.is_empty() {
                         continue;
                     }
@@ -1122,7 +1156,7 @@ mod tests {
     use super::*;
     use crate::hosts::{AuthMethod, Protocol};
 
-    fn host(id: &str, name: &str, updated_at: u64) -> Host {
+    pub(super) fn host(id: &str, name: &str, updated_at: u64) -> Host {
         Host {
             id: id.into(),
             name: name.into(),

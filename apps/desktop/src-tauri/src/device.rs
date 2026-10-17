@@ -54,7 +54,14 @@ pub fn display_name() -> Option<String> {
                 .to_string_lossy()
                 .into_owned()
         });
-        return Some(if machine.starts_with("iPad") { "iPad" } else { "iPhone" }.to_string());
+        return Some(
+            if machine.starts_with("iPad") {
+                "iPad"
+            } else {
+                "iPhone"
+            }
+            .to_string(),
+        );
     }
     #[allow(unreachable_code)]
     host_name()
@@ -130,6 +137,9 @@ mod tests {
             picked_path("file:///private/var/tmp/es.hostealo.terminal-Inbox/copia%20Mac.hostealo"),
             std::path::Path::new("/private/var/tmp/es.hostealo.terminal-Inbox/copia Mac.hostealo")
         );
-        assert_eq!(picked_path("/Users/ana/copia.hostealo"), std::path::Path::new("/Users/ana/copia.hostealo"));
+        assert_eq!(
+            picked_path("/Users/ana/copia.hostealo"),
+            std::path::Path::new("/Users/ana/copia.hostealo")
+        );
     }
 }

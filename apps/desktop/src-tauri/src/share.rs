@@ -22,8 +22,8 @@ pub async fn share_files(app: tauri::AppHandle, paths: Vec<String>) -> Result<()
 
 #[cfg(target_os = "ios")]
 fn present(paths: &[String]) {
-    use objc2::rc::Retained;
     use objc2::MainThreadMarker;
+    use objc2::rc::Retained;
     use objc2_core_foundation::{CGPoint, CGRect, CGSize};
     use objc2_foundation::{NSArray, NSString, NSURL};
     use objc2_ui_kit::{UIActivityViewController, UIApplication};

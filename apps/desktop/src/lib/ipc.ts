@@ -651,6 +651,19 @@ export const syncConnect = (address: string, onEvent: (event: SyncEvent) => void
 export const syncConfirm = (id: number, accepted: boolean, includeSecrets: boolean): Promise<void> =>
   invoke("sync_confirm", { id, accepted, includeSecrets });
 export const syncCancel = (id: number): Promise<void> => invoke("sync_cancel", { id });
+/** The QR codes that pass this device's servers over (sync/qr.rs), with the code to type when the passwords go too. */
+export interface QrExport {
+  frames: string[];
+  code: string | null;
+  hosts: number;
+  secrets: number;
+}
+
+export const syncQrExport = (includeSecrets: boolean): Promise<QrExport> => invoke("sync_qr_export", { includeSecrets });
+
+/** Merges the servers read from another device's QR codes. */
+export const syncQrImport = (frames: string[], code: string | null): Promise<SyncSummary> => invoke("sync_qr_import", { frames, code });
+
 /** The pairing link the app was opened with (the QR code scanned with the camera), once. */
 export const syncOpenedLink = (): Promise<string | null> => invoke("sync_opened_link");
 

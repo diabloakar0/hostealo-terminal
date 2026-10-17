@@ -18,9 +18,12 @@ import {
   type SyncSummary,
 } from "../lib/ipc";
 import { isIOS } from "../lib/format";
+import { parseQrFrame } from "../lib/qrTransfer";
 import { useHosts } from "../store/hosts";
 import { useUi } from "../store/ui";
 import { QrCode } from "./QrCode";
+import { QrReceive } from "./QrReceive";
+import { QrSend } from "./QrSend";
 import { Button } from "./ui/Button";
 import { CopyButton } from "./ui/CopyButton";
 import { Checkbox, Field, Input, Segmented } from "./ui/Form";
@@ -42,12 +45,13 @@ type Stage =
   | { kind: "exported"; hosts: number; secrets: number; path: string }
   | { kind: "error"; message: string };
 
-type Mode = "device" | "backup";
+type Mode = "device" | "qr" | "backup";
 type BackupMode = "export" | "import";
 
 /**
  * Syncs hosts with another of the user's devices, with nothing in between: on the same network
- * (found automatically, or paired with the QR code / link), or through an encrypted backup file.
+ * (found automatically, or paired with the QR code / link), in QR codes that carry the servers
+ * themselves (devices on different networks), or through an encrypted backup file.
  *
  * An iPhone or iPad does not look for devices: iOS keeps apps from multicasting on the network
  * without a special permission from Apple. It scans the computer's QR code with the camera
@@ -61,6 +65,8 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
   const [devices, setDevices] = useState<Device[]>([]);
   const [manual, setManual] = useState("");
   const [includeSecrets, setIncludeSecrets] = useState(false);
+  /** A code of a QR transfer opened with the Camera app. */
+  const [qrIncoming, setQrIncoming] = useState<string | null>(null);
   const sessions = useRef<number[]>([]);
   const meRef = useRef(me);
   meRef.current = me;
@@ -123,6 +129,12 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
     if (!syncLink) return;
     useUi.getState().setSyncLink(null);
     stop();
+    if (parseQrFrame(syncLink)) {
+      setMode("qr");
+      setStage({ kind: "searching" });
+      setQrIncoming(syncLink);
+      return;
+    }
     setMode("device");
     connect(syncLink, t("sync.linkedDevice"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -157,7 +169,7 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
     setMode(next);
     setStage({ kind: "searching" });
     // Only visible on the network while the device tab is open.
-    if (next === "backup") stop();
+    if (next !== "device") stop();
     else start();
   };
 
@@ -254,6 +266,15 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
                   <>
                     <Smartphone className="size-3.5" />
                     {t("sync.modeDevice")}
+                  </>
+                ),
+              },
+              {
+                value: "qr",
+                label: (
+                  <>
+                    <QrIcon className="size-3.5" />
+                    {t("sync.modeQr")}
                   </>
                 ),
               },
@@ -386,6 +407,18 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
                 {t("sync.networkHint")}
               </p>
             </>
+          ) : mode === "qr" ? (
+            isIOS ? (
+              <QrReceive
+                incoming={qrIncoming}
+                onDone={(summary) => {
+                  void useHosts.getState().load();
+                  setStage({ kind: "done", summary });
+                }}
+              />
+            ) : (
+              <QrSend />
+            )
           ) : (
             <>
               <p className="text-sm leading-relaxed text-fg-secondary">{t("sync.backup.intro")}</p>

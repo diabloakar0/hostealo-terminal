@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>0.1.1</string>
 	<key>CFBundleVersion</key>
 	<string>4</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -65,5 +65,7 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Hostealo Terminal usa la cámara para leer el código QR con el que tu ordenador te pasa sus servidores.</string>
 </dict>
 </plist>

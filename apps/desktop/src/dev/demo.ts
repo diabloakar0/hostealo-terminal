@@ -472,6 +472,16 @@ mockIPC(
         return new Promise((resolve) => later(900, () => resolve({ hosts: data.hosts.length, secrets: a.includeSecrets ? 4 : 0 })));
       case "sync_import":
         return new Promise((resolve) => later(900, () => resolve({ added: 0, updated: 0, deleted: 0, secrets: 0 })));
+      case "sync_qr_export": {
+        // The size of a real transfer: one dense code, or three with the passwords.
+        const part = (i: number, n: number) => `hostealo-terminal://qr?s=d3m0&i=${i}&n=${n}&k=${a.includeSecrets ? "" : "K7QM2XPA"}&d=${"Q".repeat(620 + i * 7)}`;
+        const n = a.includeSecrets ? 3 : 1;
+        return new Promise((resolve) =>
+          later(400, () => resolve({ frames: Array.from({ length: n }, (_, i) => part(i + 1, n)), code: a.includeSecrets ? "K7QM2XPA" : null, hosts: data.hosts.length, secrets: a.includeSecrets ? 4 : 0 })),
+        );
+      }
+      case "sync_qr_import":
+        return new Promise((resolve) => later(700, () => resolve({ added: 6, updated: 0, deleted: 0, secrets: a.code ? 4 : 0 })));
       case "plugin:dialog|save":
         return "/Users/demo/Documents/hostealo-terminal.hostealo";
       case "plugin:dialog|open":

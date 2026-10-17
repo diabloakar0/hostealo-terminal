@@ -106,6 +106,16 @@ html[data-edge="all"] body {
   background-color: #000;
 }
 
+/* iPhone and iPad: reading QR codes, the camera is behind the page (QrReceive.tsx). The page
+   lets it through and hides the app; only the scanner's frame and buttons stay. */
+html[data-scanning],
+html[data-scanning] body {
+  background: transparent !important;
+}
+html[data-scanning] #root {
+  visibility: hidden;
+}
+
 /* Desktop app chrome: no text selection outside inputs and the terminal (xterm handles its own).
    No iOS callout either: a held finger opens the app's own menu (lib/longPress.ts). */
 body {

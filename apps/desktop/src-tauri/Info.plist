@@ -26,6 +26,10 @@
        ID needs no text). English and Spanish texts in gen/apple/hostealo-terminal_iOS/*.lproj. -->
   <key>NSFaceIDUsageDescription</key>
   <string>Hostealo Terminal usa Face ID para mostrar una contraseña guardada y, si lo activas, para desbloquear la app.</string>
+  <!-- iPhone and iPad: the camera reads the QR codes a computer shows to pass its servers over.
+       Same texts in the *.lproj folders. -->
+  <key>NSCameraUsageDescription</key>
+  <string>Hostealo Terminal usa la cámara para leer el código QR con el que tu ordenador te pasa sus servidores.</string>
   <!-- Export compliance: encryption only through standard algorithms (SSH, TLS), so App Store
        Connect does not ask again for every build. -->
   <key>ITSAppUsesNonExemptEncryption</key>

@@ -74,6 +74,8 @@ macro_rules! handler {
             sync::sync_export,
             sync::sync_import,
             sync::sync_opened_link,
+            sync::qr::sync_qr_export,
+            sync::qr::sync_qr_import,
             ssh::ssh_resize,
             ssh::ssh_close,
             ssh::ssh_close_all,
@@ -140,7 +142,9 @@ pub fn run() {
 
     // A light tap on the touch key bars.
     #[cfg(mobile)]
-    let builder = builder.plugin(tauri_plugin_haptics::init());
+    let builder = builder
+        .plugin(tauri_plugin_haptics::init())
+        .plugin(tauri_plugin_barcode_scanner::init());
 
     // A local shell is desktop-only.
     #[cfg(desktop)]
@@ -165,7 +169,7 @@ pub fn run() {
             #[cfg(any(target_os = "macos", target_os = "ios"))]
             if let tauri::RunEvent::Opened { urls } = _event {
                 for url in urls {
-                    if sync::is_pairing_link(url.as_str()) {
+                    if sync::is_pairing_link(url.as_str()) || sync::qr::is_frame(url.as_str()) {
                         sync::open_link(_app, url.to_string());
                     }
                 }
