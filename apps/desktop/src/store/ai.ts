@@ -40,6 +40,8 @@ interface Conversation {
   messages: AiMessage[];
   /** The reply streaming right now (-1 while it starts). */
   requestId: number | null;
+  /** The user pressed stop: a step still running finishes, but the agent does not go on. */
+  halted?: boolean;
 }
 
 interface AiStore {
@@ -243,10 +245,11 @@ export const useAi = create<AiStore>((set, get) => {
       update(key, (c) => ({ ...c, requestId: null }));
       afterReply(key, reply.id);
     };
+    // The model is told only about what it can really do here.
     const can = reach(key);
-    const agent = get().agentMode && (can.run !== null || can.desktop);
+    const agentMode = get().agentMode;
     try {
-      const requestId = await aiChat(toChatMessages(history), agent, agent && can.desktop, (event) => {
+      const requestId = await aiChat(toChatMessages(history), agentMode && can.run !== null, agentMode && can.desktop, (event) => {
         switch (event.type) {
           case "model":
             return updateMessage(key, reply.id, () => ({ model: event.model }));
@@ -291,7 +294,7 @@ export const useAi = create<AiStore>((set, get) => {
       patchAction(key, action.id, { actionState: "failed", error: String(e) });
       append(key, { id: newId(), role: "user", hidden: true, text: `<action_result>The action failed: ${String(e)}</action_result>` });
     }
-    await request(key);
+    if (!get().conversations[key]?.halted) await request(key);
   };
 
   return {
@@ -329,6 +332,7 @@ export const useAi = create<AiStore>((set, get) => {
       // A new question leaves any command still waiting for approval unanswered.
       update(key, (c) => ({
         ...c,
+        halted: false,
         messages: c.messages.map((m) => (m.actionState === "pending" ? { ...m, actionState: "declined" } : m)),
       }));
       append(key, { id: newId(), role: "user", text: question, context: context?.text, contextLabel: context?.label, images });
@@ -338,6 +342,8 @@ export const useAi = create<AiStore>((set, get) => {
     approve: async (key, actionId) => {
       const action = find(key, actionId);
       if (!action || action.actionState !== "pending") return;
+      // Approving a step means going on, even after an earlier stop.
+      update(key, (c) => ({ ...c, halted: false }));
       if (action.actionKind === "desktop") return approveDesktop(key, action);
       const run = reach(key).run;
       if (!run) return;
@@ -351,7 +357,7 @@ export const useAi = create<AiStore>((set, get) => {
       }
       if (find(key, actionId)?.actionState === "running") patchAction(key, actionId, { actionState: "done", output });
       append(key, { id: newId(), role: "user", hidden: true, text: describeOutput(action.text, output) });
-      await request(key);
+      if (!get().conversations[key]?.halted) await request(key);
     },
 
     decline: (key, actionId) => {
@@ -369,6 +375,7 @@ export const useAi = create<AiStore>((set, get) => {
       if (conversation.requestId !== null && conversation.requestId > 0) void aiCancel(conversation.requestId);
       update(key, (c) => ({
         requestId: null,
+        halted: true,
         messages: c.messages.map((m) =>
           m.state === "thinking" || m.state === "streaming"
             ? { ...m, state: "stopped" }
