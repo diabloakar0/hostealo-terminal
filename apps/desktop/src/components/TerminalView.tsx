@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
@@ -15,11 +15,12 @@ import { createBackend, type SessionExit } from "../lib/sessions";
 import { matchShortcut } from "../lib/shortcuts";
 import { registerTerminal } from "../lib/terminals";
 import { applyTouchModifiers } from "../lib/touchKeys";
-import { isIOS } from "../lib/format";
+import { isIOS, isMac } from "../lib/format";
 import { useHostAccent } from "../hooks/useHostColor";
 import { useResolvedTheme } from "../hooks/usePreferences";
 import { useSettings } from "../store/settings";
 import { useTabs, type Tab } from "../store/tabs";
+import { Menu, type MenuAnchor } from "./ui/Menu";
 
 const FONT_FAMILY = '"Geist Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 
@@ -69,6 +70,9 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
       cursorBlink: true,
       scrollback: 10_000,
       macOptionIsMeta: true,
+      // Programs that use the mouse (Claude Code, vim, htop...) get the clicks; ⌥ (Shift
+      // elsewhere, built into xterm) still selects text, as in iTerm and other terminals.
+      macOptionClickForcesSelection: true,
       screenReaderMode: settings.screenReader,
       allowProposedApi: true,
       theme: document.documentElement.dataset.theme === "light" ? hostealoLight : hostealoDark,
@@ -81,7 +85,18 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
       }),
     );
     // App shortcuts are handled by the window listener in App; keep them away from the shell.
-    term.attachCustomKeyEventHandler((e) => !matchShortcut(e));
+    // Copy and paste: ⌘C/⌘V on a Mac, Ctrl+Shift+C/V elsewhere (plain Ctrl+C is the shell's).
+    term.attachCustomKeyEventHandler((e) => {
+      if (e.type === "keydown" && isClipboardKey(e, "KeyC") && term.hasSelection()) {
+        void navigator.clipboard.writeText(term.getSelection());
+        return false;
+      }
+      if (e.type === "keydown" && !isMac && isClipboardKey(e, "KeyV")) {
+        void navigator.clipboard.readText().then((text) => text && term.paste(text));
+        return false;
+      }
+      return !matchShortcut(e);
+    });
     termRef.current = term;
     fitRef.current = fit;
 
@@ -267,6 +282,56 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
     };
   }, []);
 
+  // A drag in a program that takes the mouse selects nothing: say which key selects anyway.
+  const [selectHint, setSelectHint] = useState(false);
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || isIOS) return;
+    let start: { x: number; y: number } | null = null;
+    let timer = 0;
+    const onDown = (e: MouseEvent) => {
+      const term = termRef.current;
+      const forced = isMac ? e.altKey : e.shiftKey;
+      start = e.button === 0 && !forced && term && term.modes.mouseTrackingMode !== "none" ? { x: e.clientX, y: e.clientY } : null;
+    };
+    const onMove = (e: MouseEvent) => {
+      if (!start || !(e.buttons & 1) || Math.hypot(e.clientX - start.x, e.clientY - start.y) < 8) return;
+      start = null;
+      setSelectHint(true);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setSelectHint(false), 4000);
+    };
+    const onUp = () => (start = null);
+    container.addEventListener("mousedown", onDown, true);
+    container.addEventListener("mousemove", onMove, true);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      container.removeEventListener("mousedown", onDown, true);
+      container.removeEventListener("mousemove", onMove, true);
+      window.removeEventListener("mouseup", onUp);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  // Right click: copy, paste, select all, clear (on iPhone and iPad the key bar does this).
+  const [menu, setMenu] = useState<MenuAnchor | null>(null);
+  const menuEntries = () => {
+    const term = termRef.current!;
+    return [
+      ...(term.hasSelection()
+        ? [{ label: t("terminalMenu.copy"), hint: isMac ? "⌘C" : "Ctrl+Shift+C", onSelect: () => void navigator.clipboard.writeText(term.getSelection()) }]
+        : []),
+      {
+        label: t("terminalMenu.paste"),
+        hint: isMac ? "⌘V" : "Ctrl+Shift+V",
+        onSelect: () => void navigator.clipboard.readText().then((text) => text && term.paste(text)).finally(() => term.focus()),
+      },
+      { separator: true as const },
+      { label: t("terminalMenu.selectAll"), onSelect: () => term.selectAll() },
+      { label: t("terminalMenu.clear"), onSelect: () => term.clear() },
+    ];
+  };
+
   useEffect(() => {
     if (!active) return;
     const frame = requestAnimationFrame(() => {
@@ -285,7 +350,36 @@ export function TerminalView({ tab, active }: TerminalViewProps) {
     >
       {/* Coloured hosts get a stripe along the top, on top of the tinted background. */}
       {accent && <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5" style={{ background: accent.hex }} />}
-      <div ref={containerRef} className="size-full" />
+      <div
+        ref={containerRef}
+        className="size-full"
+        onContextMenu={(e) => {
+          if (isIOS || !termRef.current) return;
+          e.preventDefault();
+          setMenu({ x: e.clientX, y: e.clientY });
+        }}
+      />
+      {selectHint && (
+        <div role="status" className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/80 px-4 py-2 text-sm text-white shadow-lg">
+          {t(isMac ? "terminalMenu.selectHintMac" : "terminalMenu.selectHint")}
+        </div>
+      )}
+      {menu && (
+        <Menu
+          anchor={menu}
+          entries={menuEntries()}
+          onClose={() => {
+            setMenu(null);
+            termRef.current?.focus();
+          }}
+        />
+      )}
     </div>
   );
+}
+
+/** ⌘ + key on a Mac; Ctrl+Shift + key elsewhere, where Ctrl + key belongs to the shell. */
+function isClipboardKey(e: KeyboardEvent, code: "KeyC" | "KeyV") {
+  if (e.code !== code || e.altKey) return false;
+  return isMac ? e.metaKey && !e.ctrlKey : e.ctrlKey && e.shiftKey && !e.metaKey;
 }

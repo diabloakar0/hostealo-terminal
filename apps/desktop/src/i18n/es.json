@@ -826,5 +826,25 @@
     "restart": "Instalada: reiniciando…",
     "failed": "No se pudo actualizar.",
     "download": "Descargarla desde la web"
+  },
+  "hostSort": {
+    "title": "Ordenar servidores",
+    "added": "Por orden en que se añadieron",
+    "addedDesc": "Los últimos añadidos primero",
+    "name": "Nombre (A-Z)",
+    "nameDesc": "Nombre (Z-A)",
+    "os": "Sistema operativo",
+    "recent": "Usados recientemente",
+    "frequent": "Más usados",
+    "showFrequent": "Mostrar los habituales arriba",
+    "usual": "Habituales"
+  },
+  "terminalMenu": {
+    "copy": "Copiar",
+    "paste": "Pegar",
+    "selectAll": "Seleccionar todo",
+    "clear": "Limpiar pantalla",
+    "selectHintMac": "Este programa usa el ratón: mantén ⌥ Opción para seleccionar texto",
+    "selectHint": "Este programa usa el ratón: mantén Mayús para seleccionar texto"
   }
 }

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import type { HostSort } from "../lib/hostSort";
+
 export type ThemePreference = "system" | "dark" | "light";
 export type LanguagePreference = "system" | "en" | "es";
 
@@ -15,6 +17,10 @@ interface Settings {
   appLock: boolean;
   /** Look for a new version on start and every few hours (desktop; lib/updates.ts). */
   checkUpdates: boolean;
+  /** The order of the servers inside each folder (lib/hostSort.ts). */
+  hostSort: HostSort;
+  /** The servers used most often, above the list. */
+  showFrequent: boolean;
   /** Folder paths collapsed in the sidebar. */
   collapsedFolders: string[];
   /** The file browser shows this computer's files next to the server's. */
@@ -44,6 +50,8 @@ const DEFAULTS: Settings = {
   screenReader: false,
   appLock: false,
   checkUpdates: true,
+  hostSort: "added",
+  showFrequent: true,
   collapsedFolders: [],
   filesShowLocal: true,
   hostealoSyncMinutes: 15,

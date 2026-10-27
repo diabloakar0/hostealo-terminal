@@ -826,5 +826,25 @@
     "restart": "Installed: restarting…",
     "failed": "The update failed.",
     "download": "Download it from the website"
+  },
+  "hostSort": {
+    "title": "Sort servers",
+    "added": "In the order they were added",
+    "addedDesc": "Last added first",
+    "name": "Name (A-Z)",
+    "nameDesc": "Name (Z-A)",
+    "os": "Operating system",
+    "recent": "Recently used",
+    "frequent": "Most used",
+    "showFrequent": "Show the usual ones on top",
+    "usual": "Usual"
+  },
+  "terminalMenu": {
+    "copy": "Copy",
+    "paste": "Paste",
+    "selectAll": "Select all",
+    "clear": "Clear screen",
+    "selectHintMac": "This program uses the mouse: hold ⌥ Option to select text",
+    "selectHint": "This program uses the mouse: hold Shift to select text"
   }
 }

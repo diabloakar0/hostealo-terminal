@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { hasLocalShell } from "../lib/format";
+import { useUsage } from "./usage";
 
 export type TabKind = "local" | "ssh" | "sftp" | "ftp" | "rdp" | "docker" | "vms" | "keys" | "knownHosts" | "status";
 /** Tabs that show a terminal (the others are pages). */
@@ -59,7 +60,11 @@ function newTab(kind: TabKind, hostId: string | null = null): Tab {
 const first = hasLocalShell ? newTab("local") : null;
 
 export const useTabs = create<TabsStore>((set, get) => {
-  const add = (tab: Tab) => set((s) => ({ tabs: [...s.tabs, tab], activeId: tab.id }));
+  const add = (tab: Tab) => {
+    // Every session opened on a host counts for sorting by use and for the usual servers.
+    if (tab.hostId) useUsage.getState().record(tab.hostId);
+    set((s) => ({ tabs: [...s.tabs, tab], activeId: tab.id }));
+  };
   const focus = (id: string) => set((s) => ({ activeId: id, tabs: s.tabs.map((t) => (t.id === id ? { ...t, usedAt: Date.now() } : t)) }));
   const patch = (id: string, changes: Partial<Tab>) =>
     set((s) => ({ tabs: s.tabs.map((t) => (t.id === id ? { ...t, ...changes } : t)) }));
@@ -106,6 +111,7 @@ export const useTabs = create<TabsStore>((set, get) => {
       const old = get().tabs.find((t) => t.id === id);
       if (!old) return;
       const fresh = newTab(old.kind, old.hostId);
+      if (fresh.hostId) useUsage.getState().record(fresh.hostId);
       set((s) => ({ tabs: s.tabs.map((t) => (t.id === id ? fresh : t)), activeId: fresh.id }));
     },
 

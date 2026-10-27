@@ -3,6 +3,8 @@
 import { useMemo, useState, type DragEvent, type MouseEvent, type ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import {
+  ArrowDownWideNarrow,
+  Check,
   ChevronRight,
   Container,
   Ellipsis,
@@ -22,6 +24,7 @@ import {
   Search,
   Server,
   SquareTerminal,
+  Star,
   Trash2,
   X,
 } from "lucide-react";
@@ -30,11 +33,13 @@ import { cn } from "@hostealo/ui/cn";
 import { homeDir, join } from "@tauri-apps/api/path";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { isMac } from "../lib/format";
+import { frequentHosts, HOST_SORTS, sortHosts, type HostSort, type Usage } from "../lib/hostSort";
 import { hostealoPower, hostealoResetPassword, type Host, type PowerAction } from "../lib/ipc";
 import { useHostAccent } from "../hooks/useHostColor";
 import { useHosts } from "../store/hosts";
 import { useSettings } from "../store/settings";
 import { useUi } from "../store/ui";
+import { useUsage } from "../store/usage";
 import { hostTabKind, isEnded, useTabs, type TabStatus } from "../store/tabs";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { StatusDot, worstStatus } from "./StatusDot";
@@ -55,7 +60,7 @@ interface FolderNode {
   hostIds: string[];
 }
 
-function buildTree(hosts: Host[], folders: string[]): FolderNode {
+function buildTree(hosts: Host[], folders: string[], sort: HostSort, usage: Usage): FolderNode {
   const root: FolderNode = { path: "", name: "", folders: [], hosts: [], hostIds: [] };
   const nodes = new Map<string, FolderNode>([["", root]]);
   const ensure = (path: string): FolderNode => {
@@ -69,7 +74,7 @@ function buildTree(hosts: Host[], folders: string[]): FolderNode {
     return node;
   };
   folders.forEach(ensure);
-  for (const host of hosts) ensure(host.folder ?? "").hosts.push(host);
+  for (const host of sortHosts(hosts, sort, usage)) ensure(host.folder ?? "").hosts.push(host);
 
   const finish = (node: FolderNode): string[] => {
     node.folders.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }));
@@ -106,6 +111,9 @@ export function HostTree(props: HostTreeProps) {
   const tabs = useTabs((s) => s.tabs);
   const activeHostId = useTabs((s) => s.tabs.find((tab) => tab.id === s.activeId)?.hostId ?? null);
   const collapsed = useSettings((s) => s.collapsedFolders);
+  const sort = useSettings((s) => s.hostSort);
+  const showFrequent = useSettings((s) => s.showFrequent);
+  const usage = useUsage((s) => s.byHost);
   const [filter, setFilter] = useState("");
   const [dialog, setDialog] = useState<FolderDialog>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
@@ -114,7 +122,10 @@ export function HostTree(props: HostTreeProps) {
   const [power, setPower] = useState<{ host: Host; action: PowerAction } | null>(null);
   const [resetting, setResetting] = useState<Host | null>(null);
 
-  const tree = useMemo(() => buildTree(hosts, folders), [hosts, folders]);
+  // Sorting by use reads the usage; the other orders do not change when it does.
+  const sortUsage = sort === "recent" || sort === "frequent" ? usage : null;
+  const tree = useMemo(() => buildTree(hosts, folders, sort, sortUsage ?? {}), [hosts, folders, sort, sortUsage]);
+  const frequent = useMemo(() => (showFrequent ? frequentHosts(hosts, usage) : []), [showFrequent, hosts, usage]);
   const query = filter.trim().toLowerCase();
 
   // Most relevant status among the tabs open on each host.
@@ -217,6 +228,21 @@ export function HostTree(props: HostTreeProps) {
     },
   });
 
+  const sortEntries = (): MenuEntry[] => [
+    { heading: t("hostSort.title") },
+    ...HOST_SORTS.map((value) => ({
+      label: t(`hostSort.${value}`),
+      icon: value === sort ? <Check /> : <span />,
+      onSelect: () => useSettings.getState().update({ hostSort: value }),
+    })),
+    { separator: true },
+    {
+      label: t("hostSort.showFrequent"),
+      icon: showFrequent ? <Check /> : <span />,
+      onSelect: () => useSettings.getState().update({ showFrequent: !showFrequent }),
+    },
+  ];
+
   const hostProps = (host: Host) => ({
     host,
     status: statusByHost.get(host.id),
@@ -274,6 +300,18 @@ export function HostTree(props: HostTreeProps) {
       <header className="flex items-center justify-between pb-1.5 pl-2">
         <p className="text-xs font-medium text-fg-muted">{t("sidebar.hosts")}</p>
         <span className="flex">
+          {hosts.length > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6"
+              onClick={(e) => setMenu({ anchor: { rect: e.currentTarget.getBoundingClientRect(), placement: "below" }, entries: sortEntries() })}
+              title={t("hostSort.title")}
+              aria-label={t("hostSort.title")}
+            >
+              <ArrowDownWideNarrow className="size-3.5" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="size-6" onClick={() => setImporting(true)} title={t("import.title")} aria-label={t("import.title")}>
             <Import className="size-3.5" />
           </Button>
@@ -351,6 +389,21 @@ export function HostTree(props: HostTreeProps) {
           </>
         ) : (
           <>
+            {frequent.length > 0 && (
+              <li className="mb-1.5 border-b border-border pb-1.5">
+                <p className="flex items-center gap-1.5 px-2 pb-0.5 text-[11px] font-medium uppercase tracking-wide text-fg-muted">
+                  <Star className="size-3" />
+                  {t("hostSort.usual")}
+                </p>
+                <ul className="space-y-0.5">
+                  {frequent.map((host) => (
+                    <li key={host.id}>
+                      <TopHostItem {...hostProps(host)} subtitle={host.folder ?? undefined} />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            )}
             {tree.folders.map((node) => {
               const open = isOpen(node.path);
               const containsActive = node.hostIds.includes(activeHostId ?? "");
