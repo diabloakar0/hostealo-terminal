@@ -47,7 +47,7 @@
       "icons/icon.ico"
     ],
     "iOS": {
-      "bundleVersion": "6"
+      "bundleVersion": "7"
     },
     "createUpdaterArtifacts": true
   },
