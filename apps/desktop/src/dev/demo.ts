@@ -255,6 +255,20 @@ fi
 `,
     };
   }
+  if (name === "os-release") {
+    return {
+      encoding: "utf-8",
+      modified,
+      content: `PRETTY_NAME="Ubuntu 24.04.1 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.1 LTS (Noble Numbat)"
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+`,
+    };
+  }
   return { encoding: "utf-8", modified, content: `${name}\n` };
 }
 

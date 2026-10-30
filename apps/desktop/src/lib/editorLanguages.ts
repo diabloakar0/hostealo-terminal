@@ -168,24 +168,58 @@ export function detectLanguage(path: string, content = ""): LanguageId {
   }
   if (byExtension) return byExtension;
 
-  const newline = content.indexOf("\n");
-  const firstLine = (newline < 0 ? content : content.slice(0, newline)).trim();
+  return sniff(content);
+}
+
+/** A file whose name says nothing: what its text looks like. */
+function sniff(content: string): LanguageId {
+  const text = content.trimStart();
+  const newline = text.indexOf("\n");
+  const firstLine = (newline < 0 ? text : text.slice(0, newline)).trim();
   if (firstLine.startsWith("#!")) {
     for (const [pattern, language] of SHEBANG) if (pattern.test(firstLine)) return language;
   }
-  if (!ext || ext === "conf") {
-    if (looksLikeNginx(content)) return "nginx";
-    if (/^\s*\[[^\]\n]+\]\s*$/m.test(content) && /^\s*[\w.-]+\s*[=:]/m.test(content)) return "ini";
+  if (/^<\?php\b/i.test(text)) return "php";
+  if (/^<!doctype html|^<html\b/i.test(text)) return "html";
+  if (/^<\?xml\b/i.test(text) || (/^<[A-Za-z!]/.test(text) && text.trimEnd().endsWith(">"))) return "xml";
+  if (/^[{[]/.test(text) && text.length < 2_000_000) {
+    try {
+      JSON.parse(text);
+      return "json";
+    } catch {
+      // Not JSON after all.
+    }
   }
+  if (looksLikeNginx(content)) return "nginx";
+  if (looksLikeApache(content)) return "shell";
+  if (/^\s*\[[^\]\n]+\]\s*$/m.test(content) && /^\s*[\w.-]+\s*[=:]/m.test(content)) return "ini";
+  // YAML: a document marker, or several `key: value` / `- item` lines.
+  const yamlLines = content.split("\n").filter((line) => /^\s*([\w.-]+:(\s|$)|- )/.test(line)).length;
+  if (text.startsWith("---") || yamlLines >= 3) return "yaml";
+  if ((content.match(/^\s*[\w.-]+\s*=/gm) ?? []).length >= 2) return "ini";
+  if ((content.match(/^\s*#/gm) ?? []).length >= 2) return "shell";
   return "plain";
 }
 
-/** Whether a double click should open the file in the editor (else it is downloaded). */
+/** What a double click must not try to edit: archives, media, programs, documents. */
+const BINARY_EXTENSIONS = new Set([
+  "zip", "gz", "tgz", "bz2", "xz", "zst", "7z", "rar", "tar", "lz4", "lzma", "cab", "iso", "img", "dmg", "vhd", "vhdx", "qcow2", "vmdk",
+  "deb", "rpm", "apk", "msi", "exe", "dll", "so", "dylib", "bin", "o", "a", "lib", "class", "jar", "war", "pyc", "wasm",
+  "png", "jpg", "jpeg", "gif", "webp", "bmp", "ico", "tif", "tiff", "heic", "avif", "psd",
+  "mp3", "wav", "flac", "ogg", "m4a", "aac", "mp4", "mkv", "avi", "mov", "webm", "wmv",
+  "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "odp",
+  "ttf", "otf", "woff", "woff2", "eot",
+  "db", "sqlite", "sqlite3", "mdb", "frm", "ibd", "myd", "myi", "rdb", "dump",
+  "p12", "pfx", "der", "jks", "keystore", "kdbx",
+]);
+
+/**
+ * Whether a double click opens the file in the editor. Everything does except files that are
+ * plainly not text; the editor itself refuses (and offers a download) anything else that is binary.
+ */
 export function isEditableName(path: string): boolean {
-  const name = baseName(path);
-  if (BY_NAME[name] || name.startsWith(".")) return true;
-  const ext = extension(name);
-  return ext !== null && ext in BY_EXTENSION;
+  const ext = extension(baseName(path));
+  return ext === null || !BINARY_EXTENSIONS.has(ext);
 }
 
 /** The syntax highlighting for a language (loaded on first use). */

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FileCode, LoaderCircle, Save, TriangleAlert, WrapText, X } from "lucide-react";
+import { Download, FileCode, LoaderCircle, Save, TriangleAlert, WrapText, X } from "lucide-react";
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { bracketMatching, foldGutter, foldKeymap, HighlightStyle, indentOnInput, syntaxHighlighting } from "@codemirror/language";
@@ -87,7 +87,18 @@ const highlight = HighlightStyle.define([
 const ENCODING_LABEL: Record<TextEncoding, string> = { "utf-8": "UTF-8", "utf-8-bom": "UTF-8 BOM", latin1: "Latin-1" };
 
 /** A text file open for editing, over the file browser: syntax colours for its language, Ctrl+S to save. */
-export default function FileEditor({ source, onClose, onSaved }: { source: EditorSource; onClose: () => void; onSaved?: () => void }) {
+export default function FileEditor({
+  source,
+  onClose,
+  onSaved,
+  onDownload,
+}: {
+  source: EditorSource;
+  onClose: () => void;
+  onSaved?: () => void;
+  /** Offered when the file cannot be edited (not text, or too big): gets it the usual way. */
+  onDownload?: () => void;
+}) {
   const { t } = useTranslation();
   const name = source.path.split(/[\\/]/).pop() ?? source.path;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -289,9 +300,15 @@ export default function FileEditor({ source, onClose, onSaved }: { source: Edito
               <div className="max-w-md px-6 text-center">
                 <TriangleAlert className="mx-auto size-6 text-amber" />
                 <p className="mt-2 text-sm text-fg-secondary">{loadMessage}</p>
-                <Button className="mt-4" onClick={onClose}>
-                  {t("common.close")}
-                </Button>
+                <div className="mt-4 flex justify-center gap-2">
+                  <Button onClick={onClose}>{t("common.close")}</Button>
+                  {onDownload && (loadError === TEXT_BINARY || loadError === TEXT_TOO_LARGE) && (
+                    <Button variant="primary" onClick={onDownload}>
+                      <Download className="size-4" />
+                      {t("sftp.download")}
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               <p className="flex items-center gap-2 text-sm text-fg-muted">

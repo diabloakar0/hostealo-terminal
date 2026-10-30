@@ -70,7 +70,7 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [dragging, setDragging] = useState(false);
   /** The file open in the editor, over both panes. */
-  const [editing, setEditing] = useState<{ source: EditorSource; side: "local" | "remote" } | null>(null);
+  const [editing, setEditing] = useState<{ source: EditorSource; side: "local" | "remote"; entry: SftpEntry } | null>(null);
 
   // The server side.
   const [cwd, setCwd] = useState("");
@@ -250,6 +250,7 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
     const id = sessionId;
     setEditing({
       side: "remote",
+      entry,
       source: {
         path: entry.path,
         where: hostName,
@@ -262,6 +263,7 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
   const editLocal = (entry: SftpEntry) =>
     setEditing({
       side: "local",
+      entry,
       source: {
         path: entry.path,
         where: thisDevice,
@@ -457,6 +459,14 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
             source={editing.source}
             onClose={() => setEditing(null)}
             onSaved={() => (editing.side === "remote" ? void navigate(cwdRef.current) : void navigateLocal(localCwdRef.current))}
+            onDownload={
+              editing.side === "remote"
+                ? () => {
+                    setEditing(null);
+                    void download([editing.entry]);
+                  }
+                : undefined
+            }
           />
         </Suspense>
       )}

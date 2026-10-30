@@ -27,13 +27,28 @@ describe("editor languages", () => {
     expect(detectLanguage("/opt/tools/data", "just words")).toBe("plain");
   });
 
-  it("opens text files on double click and leaves the rest to download", () => {
+  it("opens every file on double click except plainly binary ones", () => {
     expect(isEditableName("site_saribal.conf")).toBe(true);
     expect(isEditableName(".env")).toBe(true);
     expect(isEditableName("Dockerfile")).toBe(true);
+    expect(isEditableName("README")).toBe(true);
+    // Unknown formats get a try: the editor refuses them if they turn out to be binary.
+    expect(isEditableName("panel.tpl")).toBe(true);
+    expect(isEditableName("access.log.1")).toBe(true);
     expect(isEditableName("backup.tar.gz")).toBe(false);
-    expect(isEditableName("photo.jpg")).toBe(false);
-    expect(isEditableName("README")).toBe(false);
+    expect(isEditableName("photo.JPG")).toBe(false);
+    expect(isEditableName("setup.exe")).toBe(false);
+  });
+
+  it("recognises the text of files with unknown extensions", () => {
+    expect(detectLanguage("/srv/app/settings.tpl", '{\n  "debug": false,\n  "port": 8080\n}\n')).toBe("json");
+    expect(detectLanguage("/srv/app/layout.tmpl", '<?xml version="1.0"?>\n<root/>\n')).toBe("xml");
+    expect(detectLanguage("/srv/app/page.tmpl", "<!DOCTYPE html>\n<html></html>\n")).toBe("html");
+    expect(detectLanguage("/srv/app/index.inc", "<?php echo 1;\n")).toBe("php");
+    expect(detectLanguage("/etc/app/compose.dist", "services:\n  web:\n    image: nginx\n    ports:\n      - 80:80\n")).toBe("yaml");
+    expect(detectLanguage("/etc/app/app.local", "host=127.0.0.1\nport=5432\n")).toBe("ini");
+    expect(detectLanguage("/etc/app/rules.v4", "# Generated\n# by iptables-save\n*filter\n")).toBe("shell");
+    expect(detectLanguage("/var/log/app.log.1", "2026-10-30 started\n2026-10-30 ready\n")).toBe("plain");
   });
 
   it("loads every language's highlighting", async () => {
