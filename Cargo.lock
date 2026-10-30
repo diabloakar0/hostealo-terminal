@@ -2658,7 +2658,7 @@ dependencies = [
 
 [[package]]
 name = "hostealo-terminal"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "apple-native-keyring-store",
