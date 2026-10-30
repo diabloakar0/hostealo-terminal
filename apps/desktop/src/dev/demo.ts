@@ -175,12 +175,45 @@ function aiReply(messages: ChatMessage[], agent: boolean): string {
   let start = messages.length - 1;
   const typed = (m: ChatMessage) => m.role === "user" && !m.content.startsWith("<command_output") && !m.content.startsWith("I declined");
   while (start > 0 && !typed(messages[start])) start--;
+  // A question about the file open in the editor: a fixed version to apply.
+  if ((messages[start]?.content ?? "").includes("File open in the editor:")) return fileReply();
   // Without the terminal output attached to the question.
   const request = (messages[start]?.content ?? "").replace(/<terminal_context>[\s\S]*<\/terminal_context>/, "");
   if (!agent) return (EN ? CHAT_EN : CHAT).find(([match]) => match.test(request))?.[1] ?? (EN ? CHAT_DEFAULT_EN : CHAT_DEFAULT);
   const plan = (EN ? PLANS_EN : PLANS).find((p) => p.match.test(request))!;
   const step = Math.floor((messages.length - 1 - start) / 2);
   return plan.steps[step] ?? plan.done;
+}
+
+/** The demo's answer about a file in the editor: what to change, and the whole file to apply. */
+function fileReply(): string {
+  const intro = EN
+    ? "Two things to fix: `docker compose pull` fails silently if the registry is down, and the health check runs before the container is ready. The fixed script waits for it:"
+    : "Dos cosas que arreglar: `docker compose pull` falla en silencio si el registro está caído, y la comprobación corre antes de que el contenedor esté listo. El script corregido espera:";
+  return `${intro}
+
+\`\`\`bash
+#!/usr/bin/env bash
+# Pulls the latest image and restarts the shop without downtime.
+set -euo pipefail
+
+APP_DIR=/srv/tienda
+cd "$APP_DIR"
+
+echo "Pulling $(date +%F)…"
+docker compose pull --quiet web
+docker compose up -d --no-deps --wait web
+
+for attempt in 1 2 3 4 5; do
+  if curl -fsS http://127.0.0.1:3000/health > /dev/null; then
+    echo "Deployed ✓"
+    exit 0
+  fi
+  sleep 2
+done
+echo "Health check failed" >&2
+exit 1
+\`\`\``;
 }
 
 // ── Files ─────────────────────────────────────────────────

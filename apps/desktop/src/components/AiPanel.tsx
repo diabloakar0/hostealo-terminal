@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type 
 import { useTranslation } from "react-i18next";
 import {
   Bot,
+  FileCode,
   ChevronRight,
   CircleAlert,
   CircleCheck,
@@ -22,6 +23,7 @@ import { cn } from "@hostealo/ui/cn";
 
 import { isDangerousCommand } from "../lib/danger";
 import { isShellLanguage, parseInline, parseMarkdown } from "../lib/markdown";
+import { getEditor, useEditors } from "../lib/editors";
 import { getTerminal } from "../lib/terminals";
 import type { Host } from "../lib/ipc";
 import { useAi, type AiMessage } from "../store/ai";
@@ -37,6 +39,8 @@ import { CopyButton } from "./ui/CopyButton";
 const CONTEXT_LINES = 150;
 /** And at most this many characters of them (the most recent ones). */
 const CONTEXT_CHARS = 12_000;
+/** A file open in the editor goes whole up to this size (its start, past it). */
+const FILE_CHARS = 60_000;
 
 /** Describes the session in the active tab, for the assistant. */
 function sessionContext(tab: Tab | undefined, host: Host | undefined, os: string | null | undefined, hostname: string | null | undefined) {
@@ -76,6 +80,10 @@ export function AiPanel() {
   const host = hosts.find((candidate) => candidate.id === tab?.hostId);
   const terminal = tab && isTerminalTab(tab) ? tab.id : null;
   const sessionName = !tab || tab.kind === "local" ? t("tabs.local") : (host?.name ?? "");
+  // A file open in this tab's editor is what the questions are about.
+  const editor = useEditors((s) => (tab ? s.byTab[tab.id] : undefined));
+  const fileName = editor?.path.split(/[\\/]/).pop() ?? "";
+  const attachable = terminal !== null || editor !== undefined;
 
   useEffect(() => {
     if (!settings) void loadSettings().catch(() => {});
@@ -111,6 +119,14 @@ export function AiPanel() {
       parts.push(`Recent terminal output (last ${CONTEXT_LINES} lines at most, oldest first):\n${tail(output, CONTEXT_CHARS)}`);
       label = t("ai.contextOutput", { name: sessionName });
     }
+    if (editor && includeOutput) {
+      const content = editor.text();
+      const selection = editor.selection();
+      parts.push(`File open in the editor: ${editor.path} (syntax: ${editor.language()}, ${content.split("\n").length} lines)`);
+      if (selection) parts.push(`Selected lines ${selection.fromLine}-${selection.toLine}:\n${selection.text}`);
+      parts.push(content.length > FILE_CHARS ? `File content (its first ${FILE_CHARS} characters):\n${content.slice(0, FILE_CHARS)}…` : `File content:\n${content}`);
+      label = selection ? t("ai.contextSelection", { name: fileName }) : t("ai.contextFile", { name: fileName });
+    }
     stickRef.current = true;
     setDraft("");
     void send(key, text, { text: parts.join("\n\n"), label });
@@ -123,7 +139,9 @@ export function AiPanel() {
     }
   };
 
-  const suggestions = terminal
+  const suggestions = editor
+    ? [t("ai.suggestions.explainFile"), t("ai.suggestions.findIssues"), t("ai.suggestions.improveFile")]
+    : terminal
     ? [t("ai.suggestions.explain"), t("ai.suggestions.failed"), t("ai.suggestions.disk")]
     : [t("ai.suggestions.howto"), t("ai.suggestions.firewall")];
 
@@ -172,7 +190,9 @@ export function AiPanel() {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex h-full flex-col justify-end gap-2">
-            <p className="mb-1 text-xs leading-relaxed text-fg-muted">{t(agentMode && terminal ? "ai.agent.intro" : "ai.intro")}</p>
+            <p className="mb-1 text-xs leading-relaxed text-fg-muted">
+              {editor ? t("ai.editorIntro", { name: fileName }) : t(agentMode && terminal ? "ai.agent.intro" : "ai.intro")}
+            </p>
             {suggestions.map((suggestion) => (
               <button
                 key={suggestion}
@@ -192,7 +212,7 @@ export function AiPanel() {
               ) : message.role === "action" ? (
                 <ActionCard key={message.id} conversation={key} action={message} />
               ) : (
-                <AssistantMessage key={message.id} message={message} terminal={terminal} onSettings={() => setSettingsOpen(true)} />
+                <AssistantMessage key={message.id} message={message} terminal={terminal} editorTab={editor ? key : null} onSettings={() => setSettingsOpen(true)} />
               ),
             )}
           </div>
@@ -215,20 +235,20 @@ export function AiPanel() {
             <label
               className={cn(
                 "flex min-w-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-badge px-1.5 py-1 text-xs transition-colors",
-                includeOutput && terminal ? "text-fg-secondary" : "text-fg-muted",
-                !terminal && "cursor-default opacity-60",
+                includeOutput && attachable ? "text-fg-secondary" : "text-fg-muted",
+                !attachable && "cursor-default opacity-60",
               )}
-              title={terminal ? t("ai.includeOutputHint") : t("ai.noOutputHint")}
+              title={editor ? t("ai.includeFileHint") : terminal ? t("ai.includeOutputHint") : t("ai.noOutputHint")}
             >
               <input
                 type="checkbox"
                 className="accent-[var(--accent)]"
-                checked={includeOutput && !!terminal}
-                disabled={!terminal}
+                checked={includeOutput && attachable}
+                disabled={!attachable}
                 onChange={(e) => setIncludeOutput(e.target.checked)}
               />
-              <Paperclip className="size-3 shrink-0" />
-              <span className="truncate">{t("ai.includeOutput", { name: sessionName })}</span>
+              {editor ? <FileCode className="size-3 shrink-0" /> : <Paperclip className="size-3 shrink-0" />}
+              <span className="truncate">{editor ? fileName : t("ai.includeOutput", { name: sessionName })}</span>
             </label>
             {terminal && (
               <button
@@ -287,7 +307,18 @@ function UserMessage({ message }: { message: AiMessage }) {
   );
 }
 
-function AssistantMessage({ message, terminal, onSettings }: { message: AiMessage; terminal: string | null; onSettings: () => void }) {
+function AssistantMessage({
+  message,
+  terminal,
+  editorTab,
+  onSettings,
+}: {
+  message: AiMessage;
+  terminal: string | null;
+  /** The tab whose editor code blocks can be applied to. */
+  editorTab: string | null;
+  onSettings: () => void;
+}) {
   const { t } = useTranslation();
   const blocks = parseMarkdown(message.text);
   const streaming = message.state === "thinking" || message.state === "streaming";
@@ -307,7 +338,7 @@ function AssistantMessage({ message, terminal, onSettings }: { message: AiMessag
           case "code":
             // Commands for the agent show as their own card.
             if (block.lang === "run") return null;
-            return <CodeBlock key={i} lang={block.lang} code={block.code} complete={block.complete && !streaming} terminal={terminal} />;
+            return <CodeBlock key={i} lang={block.lang} code={block.code} complete={block.complete && !streaming} terminal={terminal} editorTab={editorTab} />;
           case "heading":
             return (
               <p key={i} className="font-semibold text-fg">
@@ -389,13 +420,24 @@ function Inline({ text }: { text: string }) {
 }
 
 /** A command or snippet. Shell commands can be typed into the terminal, never without a click. */
-function CodeBlock({ lang, code, complete, terminal }: { lang: string; code: string; complete: boolean; terminal: string | null }) {
+function CodeBlock({ lang, code, complete, terminal, editorTab }: { lang: string; code: string; complete: boolean; terminal: string | null; editorTab: string | null }) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
   const target = getTerminal(terminal);
   const command = code.replace(/\n+$/, "");
   const actionable = complete && !!target && isShellLanguage(lang) && command.trim() !== "";
   const dangerous = isDangerousCommand(command);
+  // Into the open file: only changes the editor, saving stays the user's (and Ctrl+Z undoes it).
+  const editor = complete ? getEditor(editorTab) : undefined;
+  const intoEditor = (whole: boolean) => {
+    if (!editor) return;
+    if (whole) {
+      // Code blocks lose the file's final newline; many tools want it back.
+      const endsWithNewline = editor.text().endsWith("\n");
+      editor.replaceAll(endsWithNewline && !code.endsWith("\n") ? `${code}\n` : code);
+    } else editor.insert(command);
+    editor.focus();
+  };
 
   const run = () => {
     target?.run(command);
@@ -414,6 +456,18 @@ function CodeBlock({ lang, code, complete, terminal }: { lang: string; code: str
         )}
         <div className="flex-1" />
         {complete && <CopyButton text={command} label={t("ai.copy")} variant="ghost" />}
+        {editor && (
+          <>
+            <Button size="sm" variant="ghost" onClick={() => intoEditor(false)} title={t("ai.toEditorHint")}>
+              <TextCursorInput className="size-3.5" />
+              {t("ai.toEditor")}
+            </Button>
+            <Button size="sm" variant="ghost" className="text-accent" onClick={() => intoEditor(true)} title={t("ai.replaceFileHint")}>
+              <FileCode className="size-3.5" />
+              {t("ai.replaceFile")}
+            </Button>
+          </>
+        )}
         {actionable && (
           <>
             <Button

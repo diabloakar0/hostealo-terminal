@@ -31,7 +31,8 @@
     "overwrite": "Guardar igualmente",
     "discardTitle": "¿Cerrar sin guardar?",
     "discardBody": "Se perderán tus cambios en {{name}}.",
-    "discard": "Cerrar sin guardar"
+    "discard": "Cerrar sin guardar",
+    "aiHint": "Pregúntale a la IA por este archivo"
   },
   "sidebar": {
     "sessions": "Sesiones",
@@ -373,8 +374,12 @@
     "connectBody": "Usa tu suscripción de Claude con Claude Code, una clave de API de Claude u OpenAI, o un modelo local con Ollama. Las preguntas van directas a tu proveedor.",
     "connect": "Configurar",
     "intro": "Pregunta lo que necesites sobre esta sesión. Los comandos que te proponga no se ejecutan hasta que pulses «Ejecutar».",
+    "editorIntro": "Pregunta por {{name}}: la IA ve el archivo (y lo que selecciones). Lo que te proponga va al editor con un clic; no se guarda nada hasta que pulses Guardar.",
     "suggestions": {
       "explain": "Explícame la última salida de la terminal",
+      "explainFile": "Explica qué hace este archivo",
+      "findIssues": "Busca errores en este archivo",
+      "improveFile": "Corrige y mejora este archivo",
       "failed": "¿Por qué ha fallado el último comando?",
       "disk": "¿Qué está ocupando más espacio en disco?",
       "howto": "¿Cómo compruebo qué servicios escuchan en un servidor Linux?",
@@ -388,6 +393,13 @@
     "noOutputHint": "Esta pestaña no es una terminal",
     "contextOutput": "Con la salida de {{name}}",
     "contextSession": "Con los datos de la sesión {{name}}",
+    "contextFile": "Con {{name}}",
+    "contextSelection": "Con {{name}} y las líneas seleccionadas",
+    "includeFileHint": "Envía el archivo abierto en el editor (y las líneas seleccionadas) con tu pregunta",
+    "toEditor": "Insertar",
+    "toEditorHint": "Lo pone en lugar del texto seleccionado, o en el cursor (aún sin guardar; Ctrl+Z lo deshace)",
+    "replaceFile": "Sustituir archivo",
+    "replaceFileHint": "Sustituye todo el archivo en el editor por esto (aún sin guardar; Ctrl+Z lo deshace)",
     "thinking": "Pensando…",
     "stopped": "Respuesta detenida.",
     "errorTitle": "No se pudo obtener respuesta",

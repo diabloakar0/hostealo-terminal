@@ -31,7 +31,8 @@
     "overwrite": "Save anyway",
     "discardTitle": "Close without saving?",
     "discardBody": "Your changes to {{name}} will be lost.",
-    "discard": "Close without saving"
+    "discard": "Close without saving",
+    "aiHint": "Ask the AI about this file"
   },
   "sidebar": {
     "sessions": "Sessions",
@@ -373,8 +374,12 @@
     "connectBody": "Use your Claude subscription through Claude Code, a Claude or OpenAI API key, or a local model with Ollama. Questions go straight to your provider.",
     "connect": "Set up",
     "intro": "Ask anything about this session. Commands it suggests don't run until you click “Run”.",
+    "editorIntro": "Ask about {{name}}: the AI sees the file (and what you select). What it suggests goes into the editor with one click; nothing is saved until you press Save.",
     "suggestions": {
       "explain": "Explain the latest terminal output",
+      "explainFile": "Explain what this file does",
+      "findIssues": "Find mistakes in this file",
+      "improveFile": "Fix and improve this file",
       "failed": "Why did the last command fail?",
       "disk": "What is taking up the most disk space?",
       "howto": "How do I check which services are listening on a Linux server?",
@@ -388,6 +393,13 @@
     "noOutputHint": "This tab is not a terminal",
     "contextOutput": "With the output of {{name}}",
     "contextSession": "With the {{name}} session details",
+    "contextFile": "With {{name}}",
+    "contextSelection": "With {{name}} and the selected lines",
+    "includeFileHint": "Sends the file open in the editor (and the selected lines) with your question",
+    "toEditor": "Insert",
+    "toEditorHint": "Puts it in place of the selected text, or at the cursor (not saved yet; Ctrl+Z undoes it)",
+    "replaceFile": "Replace file",
+    "replaceFileHint": "Replaces the whole file in the editor with this (not saved yet; Ctrl+Z undoes it)",
     "thinking": "Thinking…",
     "stopped": "Reply stopped.",
     "errorTitle": "Could not get a reply",

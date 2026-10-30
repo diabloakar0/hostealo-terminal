@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Download, FileCode, LoaderCircle, Save, TriangleAlert, WrapText, X } from "lucide-react";
+import { Download, FileCode, LoaderCircle, Save, Sparkles, TriangleAlert, WrapText, X } from "lucide-react";
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { bracketMatching, foldGutter, foldKeymap, HighlightStyle, indentOnInput, syntaxHighlighting } from "@codemirror/language";
@@ -22,6 +22,8 @@ import { tags } from "@lezer/highlight";
 import { cn } from "@hostealo/ui/cn";
 
 import { detectLanguage, LANGUAGES, loadLanguage, type LanguageId } from "../lib/editorLanguages";
+import { useEditors } from "../lib/editors";
+import { useAi } from "../store/ai";
 import { TEXT_BINARY, TEXT_CHANGED, TEXT_TOO_LARGE, type TextEncoding, type TextFile } from "../lib/ipc";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Button } from "./ui/Button";
@@ -89,11 +91,14 @@ const ENCODING_LABEL: Record<TextEncoding, string> = { "utf-8": "UTF-8", "utf-8-
 /** A text file open for editing, over the file browser: syntax colours for its language, Ctrl+S to save. */
 export default function FileEditor({
   source,
+  tabId,
   onClose,
   onSaved,
   onDownload,
 }: {
   source: EditorSource;
+  /** The file browser tab it is open in: the AI assistant's conversation for that tab sees it. */
+  tabId: string;
   onClose: () => void;
   onSaved?: () => void;
   /** Offered when the file cannot be edited (not text, or too big): gets it the usual way. */
@@ -119,6 +124,32 @@ export default function FileEditor({
   const [conflict, setConflict] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [cursor, setCursor] = useState({ line: 1, col: 1 });
+  const languageRef = useRef(languageId);
+  languageRef.current = languageId;
+
+  // While the file is open, the AI assistant can read it and put its suggestions in.
+  useEffect(() => {
+    if (!loaded) return;
+    const view = () => viewRef.current!;
+    useEditors.getState().set(tabId, {
+      path: source.path,
+      language: () => languageRef.current,
+      text: () => view().state.doc.toString(),
+      selection: () => {
+        const { from, to } = view().state.selection.main;
+        if (from === to) return null;
+        const doc = view().state.doc;
+        return { text: doc.sliceString(from, to), fromLine: doc.lineAt(from).number, toLine: doc.lineAt(to).number };
+      },
+      insert: (text) => {
+        const { from, to } = view().state.selection.main;
+        view().dispatch({ changes: { from, to, insert: text }, selection: { anchor: from, head: from + text.length }, scrollIntoView: true });
+      },
+      replaceAll: (text) => view().dispatch({ changes: { from: 0, to: view().state.doc.length, insert: text } }),
+      focus: () => view().focus(),
+    });
+    return () => useEditors.getState().set(tabId, null);
+  }, [loaded, tabId, source.path]);
 
   const save = async (force = false) => {
     const view = viewRef.current;
@@ -271,6 +302,10 @@ export default function FileEditor({
                 </option>
               ))}
             </select>
+            <Button variant="ghost" size="sm" onClick={() => useAi.getState().setOpen(true)} title={t("editor.aiHint")}>
+              <Sparkles className="size-3.5 text-accent" />
+              {t("ai.short")}
+            </Button>
             <Button variant="ghost" size="icon" onClick={toggleWrap} title={t("editor.wrap")} aria-label={t("editor.wrap")} aria-pressed={wrap}>
               <WrapText className={cn("size-4", wrap && "text-accent")} />
             </Button>

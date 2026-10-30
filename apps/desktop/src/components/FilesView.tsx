@@ -456,6 +456,7 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
           <FileEditor
             // A new file starts a new editor.
             key={`${editing.side}:${editing.source.path}`}
+            tabId={tab.id}
             source={editing.source}
             onClose={() => setEditing(null)}
             onSaved={() => (editing.side === "remote" ? void navigate(cwdRef.current) : void navigateLocal(localCwdRef.current))}
