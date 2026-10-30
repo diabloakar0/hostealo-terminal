@@ -7,9 +7,11 @@ import {
   ftpList,
   ftpMkdir,
   ftpOpen,
+  ftpReadText,
   ftpRealpath,
   ftpRename,
   ftpUpload,
+  ftpWriteText,
   sftpCancelTransfer,
   sftpClose,
   sftpDelete,
@@ -17,11 +19,15 @@ import {
   sftpList,
   sftpMkdir,
   sftpOpen,
+  sftpReadText,
   sftpRealpath,
   sftpRename,
   sftpUpload,
+  sftpWriteText,
   type SftpEntry,
   type SshEvent,
+  type TextEncoding,
+  type TextFile,
   type TransferProgress,
 } from "./ipc";
 
@@ -38,6 +44,10 @@ export interface FileApi {
   download: (id: number, transferId: number, entry: SftpEntry, localDir: string, onProgress: OnProgress) => Promise<void>;
   upload: (id: number, transferId: number, locals: string[], remoteDir: string, onProgress: OnProgress) => Promise<void>;
   cancelTransfer: (transferId: number) => Promise<void>;
+  /** A text file for the editor. */
+  readText: (id: number, path: string) => Promise<TextFile>;
+  /** Saves it; with `expectedModified`, refuses with `changed` if it changed meanwhile (where the protocol can tell). */
+  writeText: (id: number, path: string, content: string, encoding: TextEncoding, expectedModified: number | null) => Promise<number | null>;
 }
 
 export const sftpApi: FileApi = {
@@ -51,6 +61,8 @@ export const sftpApi: FileApi = {
   download: (id, transferId, entry, localDir, onProgress) => sftpDownload(id, transferId, entry.path, localDir, onProgress),
   upload: sftpUpload,
   cancelTransfer: sftpCancelTransfer,
+  readText: sftpReadText,
+  writeText: sftpWriteText,
 };
 
 export const ftpApi: FileApi = {
@@ -64,4 +76,7 @@ export const ftpApi: FileApi = {
   download: ftpDownload,
   upload: ftpUpload,
   cancelTransfer: ftpCancelTransfer,
+  readText: ftpReadText,
+  // FTP has no dependable modification time to compare.
+  writeText: (id, path, content, encoding) => ftpWriteText(id, path, content, encoding),
 };

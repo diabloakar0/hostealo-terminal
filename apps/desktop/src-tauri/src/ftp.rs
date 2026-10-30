@@ -31,6 +31,7 @@ use crate::ssh::sftp::{Progress, SftpEntry, TransferProgress};
 use crate::ssh::{
     Cancelled, Connector, PromptField, PromptKind, PromptRegistry, PromptReply, SshEvent, Stage,
 };
+use crate::text_file::{self, Encoding, TextFile};
 use crate::tls::{self, TrustStore, UntrustedCertificate};
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
@@ -742,6 +743,71 @@ async fn upload(
     progress.flush();
     let _ = ftp.quit().await;
     Ok(())
+}
+
+/// Reads a text file for the editor, over a data connection of its own like a download.
+#[tauri::command]
+pub async fn ftp_read_text(
+    state: State<'_, FtpState>,
+    id: u32,
+    path: String,
+) -> Result<TextFile, String> {
+    let session = state.get(id)?;
+    let bytes = async {
+        let _slot = session.transfer_slots.acquire().await?;
+        let mut ftp = connect(&session.params).await?;
+        let mut source = ftp
+            .retr_as_stream(&path)
+            .await
+            .with_context(|| format!("could not open {path}"))?;
+        let mut bytes = Vec::new();
+        // One byte past the limit is enough to know it is too big.
+        (&mut source)
+            .take(text_file::MAX_BYTES + 1)
+            .read_to_end(&mut bytes)
+            .await?;
+        if bytes.len() as u64 <= text_file::MAX_BYTES {
+            source.finish().await?;
+        }
+        let _ = ftp.quit().await;
+        anyhow::Ok(bytes)
+    }
+    .await
+    .map_err(err)?;
+    let (content, encoding) = text_file::decode(&bytes)?;
+    // FTP has no dependable modification time, so saving does not check for changes.
+    Ok(TextFile {
+        content,
+        encoding,
+        modified: None,
+    })
+}
+
+/// Saves the editor's text.
+#[tauri::command]
+pub async fn ftp_write_text(
+    state: State<'_, FtpState>,
+    id: u32,
+    path: String,
+    content: String,
+    encoding: Encoding,
+) -> Result<Option<u64>, String> {
+    let session = state.get(id)?;
+    let bytes = text_file::encode(&content, encoding)?;
+    async {
+        let _slot = session.transfer_slots.acquire().await?;
+        let mut ftp = connect(&session.params).await?;
+        let mut target = ftp
+            .put_with_stream(&path)
+            .await
+            .with_context(|| format!("could not write {path}"))?;
+        target.write_all(&bytes).await?;
+        target.finish().await?;
+        let _ = ftp.quit().await;
+        anyhow::Ok(None)
+    }
+    .await
+    .map_err(err)
 }
 
 #[tauri::command]

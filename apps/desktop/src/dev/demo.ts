@@ -195,6 +195,69 @@ function remoteListing(path: string) {
   });
 }
 
+/** What the editor shows for the demo's files. */
+function demoText(path: string): { content: string; encoding: "utf-8"; modified: number } {
+  const name = path.split("/").pop() ?? "";
+  const modified = Math.floor(Date.now() / 1000) - 3600;
+  if (path.includes("nginx") || name.endsWith(".conf")) {
+    return {
+      encoding: "utf-8",
+      modified,
+      content: `server {
+    listen 80;
+    server_name tienda.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tienda.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/tienda.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tienda.example.com/privkey.pem;
+
+    # The shop runs in Docker on port 3000
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /static/ {
+        root /var/www/tienda;
+        expires 30d;
+    }
+}
+`,
+    };
+  }
+  if (name === "deploy.sh" || name === ".bashrc") {
+    return {
+      encoding: "utf-8",
+      modified,
+      content: `#!/usr/bin/env bash
+# Pulls the latest image and restarts the shop without downtime.
+set -euo pipefail
+
+APP_DIR=/srv/tienda
+cd "$APP_DIR"
+
+echo "Pulling $(date +%F)…"
+docker compose pull web
+docker compose up -d --no-deps web
+
+if curl -fsS http://127.0.0.1:3000/health > /dev/null; then
+  echo "Deployed ✓"
+else
+  echo "Health check failed" >&2
+  exit 1
+fi
+`,
+    };
+  }
+  return { encoding: "utf-8", modified, content: `${name}\n` };
+}
+
 function transfer(onProgress: unknown, name: string, total: number): Promise<null> {
   return new Promise((resolve) => {
     for (let step = 1; step <= 10; step++) {
@@ -372,6 +435,14 @@ mockIPC(
         return transfer(a.onProgress, String(a.remote).split("/").pop()!, 2_210_000);
       case "sftp_upload":
         return transfer(a.onProgress, String((a.locals as string[])[0]).split("/").pop()!, 4_800_000);
+      case "sftp_read_text":
+      case "ftp_read_text":
+      case "local_read_text":
+        return demoText(String(a.path));
+      case "sftp_write_text":
+      case "ftp_write_text":
+      case "local_write_text":
+        return Math.floor(Date.now() / 1000);
       case "local_home":
         return "/Users/demo";
       case "local_list": {
@@ -528,4 +599,6 @@ await import("../main");
 const { useTabs } = await import("../store/tabs");
 const { useHosts } = await import("../store/hosts");
 await useHosts.getState().load();
-useTabs.getState().openSsh(params.get("host") ?? "web");
+// ?files: start on the file browser instead of a terminal.
+if (params.has("files")) useTabs.getState().openSftp(params.get("host") ?? "web");
+else useTabs.getState().openSsh(params.get("host") ?? "web");

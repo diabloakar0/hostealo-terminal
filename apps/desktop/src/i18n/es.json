@@ -11,6 +11,28 @@
     "done": "Listo",
     "clear": "Borrar"
   },
+  "editor": {
+    "edit": "Editar",
+    "title": "Editando {{name}}",
+    "loading": "Abriendo…",
+    "language": "Lenguaje",
+    "plainText": "Texto plano",
+    "wrap": "Ajustar líneas largas",
+    "saveHint": "Guardar (Ctrl+S)",
+    "unsaved": "Cambios sin guardar",
+    "position": "Lín {{line}}, Col {{col}}",
+    "latin1Hint": "No es UTF-8: se guarda byte a byte",
+    "binary": "No es un archivo de texto, así que no se puede editar aquí. Descárgalo.",
+    "tooLarge": "Este archivo pasa de 5 MB, demasiado grande para editarlo aquí. Descárgalo.",
+    "loadFailed": "No se pudo abrir el archivo: {{error}}",
+    "saveFailed": "No se pudo guardar: {{error}}",
+    "conflictTitle": "El archivo ha cambiado",
+    "conflictBody": "Otra persona cambió {{name}} después de que lo abrieras. Si guardas, tus cambios sustituyen a los suyos.",
+    "overwrite": "Guardar igualmente",
+    "discardTitle": "¿Cerrar sin guardar?",
+    "discardBody": "Se perderán tus cambios en {{name}}.",
+    "discard": "Cerrar sin guardar"
+  },
   "sidebar": {
     "sessions": "Sesiones",
     "localTerminal": "Terminal local",

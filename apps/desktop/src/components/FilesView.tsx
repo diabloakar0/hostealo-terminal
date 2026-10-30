@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Download, FolderUp, Laptop, LoaderCircle, PanelLeft, RefreshCw, Server, Smartphone, Tablet, Upload, X } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -6,17 +6,33 @@ import { downloadDir } from "@tauri-apps/api/path";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { cn } from "@hostealo/ui/cn";
 
+import { isEditableName } from "../lib/editorLanguages";
 import { formatBytes, isIOS, isIPad } from "../lib/format";
 import { ftpApi, sftpApi, type FileApi } from "../lib/files";
-import { localDelete, localHome, localList, localMkdir, localRename, shareFiles, type SftpEntry, type TransferProgress } from "../lib/ipc";
+import {
+  localDelete,
+  localHome,
+  localList,
+  localMkdir,
+  localReadText,
+  localRename,
+  localWriteText,
+  shareFiles,
+  type SftpEntry,
+  type TransferProgress,
+} from "../lib/ipc";
 import { useHostAccent } from "../hooks/useHostColor";
 import { useCompact } from "../hooks/useCompact";
 import { useHosts } from "../store/hosts";
 import { usePrompts } from "../store/prompts";
 import { useSettings } from "../store/settings";
 import { useTabs, type Tab } from "../store/tabs";
+import type { EditorSource } from "./FileEditor";
 import { FilePane, ToolbarButton, type PaneDrag } from "./FilePane";
 import { Button } from "./ui/Button";
+
+// The editor and its languages load the first time a file is opened.
+const FileEditor = lazy(() => import("./FileEditor"));
 
 interface Transfer {
   id: number;
@@ -53,6 +69,8 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
   const [attempt, setAttempt] = useState(0);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [dragging, setDragging] = useState(false);
+  /** The file open in the editor, over both panes. */
+  const [editing, setEditing] = useState<{ source: EditorSource; side: "local" | "remote" } | null>(null);
 
   // The server side.
   const [cwd, setCwd] = useState("");
@@ -227,6 +245,31 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
     if (typeof dir === "string") await downloadTo(items, dir);
   };
 
+  const editRemote = (entry: SftpEntry) => {
+    if (sessionId === null) return;
+    const id = sessionId;
+    setEditing({
+      side: "remote",
+      source: {
+        path: entry.path,
+        where: hostName,
+        read: () => api.readText(id, entry.path),
+        write: (content, encoding, expected) => api.writeText(id, entry.path, content, encoding, expected),
+      },
+    });
+  };
+
+  const editLocal = (entry: SftpEntry) =>
+    setEditing({
+      side: "local",
+      source: {
+        path: entry.path,
+        where: thisDevice,
+        read: () => localReadText(entry.path),
+        write: (content, encoding, expected) => localWriteText(entry.path, content, encoding, expected),
+      },
+    });
+
   const pickAndUpload = async (directory: boolean) => {
     const picked = await open({ multiple: true, directory });
     if (Array.isArray(picked)) void upload(picked);
@@ -336,6 +379,7 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
               await navigateLocal(localCwd);
             }}
             onOpenFile={(entry) => void upload([entry.path])}
+            onEdit={editLocal}
             transfer={{ label: t("files.uploadSelected"), icon: <ArrowRight className="size-3.5" />, run: (items) => void upload(items.map((i) => i.path)) }}
             onShare={isIOS ? (items) => void shareFiles(items.filter((i) => !i.isDir).map((i) => i.path)).catch(() => {}) : undefined}
             onReceive={(drag: PaneDrag, dir) => void downloadTo(drag.entries, dir)}
@@ -369,7 +413,9 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
               for (const item of items) await api.remove(sessionId, item);
               await navigate(cwd);
             }}
-            onOpenFile={(entry) => void download([entry])}
+            // Text files (configs, scripts, code) open in the editor; anything else downloads.
+            onOpenFile={(entry) => (isEditableName(entry.name) ? editRemote(entry) : void download([entry]))}
+            onEdit={editRemote}
             transfer={{
               label: t("sftp.download"),
               icon: showLocal ? <ArrowLeft className="size-3.5" /> : <Download className="size-3.5" />,
@@ -402,6 +448,18 @@ export function FilesView({ tab, active }: { tab: Tab; active: boolean }) {
           />
         </div>
       </div>
+
+      {editing && (
+        <Suspense fallback={null}>
+          <FileEditor
+            // A new file starts a new editor.
+            key={`${editing.side}:${editing.source.path}`}
+            source={editing.source}
+            onClose={() => setEditing(null)}
+            onSaved={() => (editing.side === "remote" ? void navigate(cwdRef.current) : void navigateLocal(localCwdRef.current))}
+          />
+        </Suspense>
+      )}
 
       {transfers.length > 0 && <Transfers transfers={transfers} onCancel={(id) => void api.cancelTransfer(id)} onDismiss={(id) => setTransfers((all) => all.filter((tr) => tr.id !== id))} />}
 

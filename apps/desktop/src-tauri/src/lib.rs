@@ -21,6 +21,7 @@ mod share;
 mod ssh;
 mod ssh_keys;
 mod sync;
+mod text_file;
 mod tls;
 
 use std::sync::{Arc, Mutex};
@@ -66,6 +67,8 @@ macro_rules! handler {
             local_fs::local_mkdir,
             local_fs::local_rename,
             local_fs::local_delete,
+            local_fs::local_read_text,
+            local_fs::local_write_text,
             sync::sync_listen,
             sync::sync_browse,
             sync::sync_connect,
@@ -92,6 +95,8 @@ macro_rules! handler {
             ssh::sftp::sftp_delete,
             ssh::sftp::sftp_download,
             ssh::sftp::sftp_upload,
+            ssh::sftp::sftp_read_text,
+            ssh::sftp::sftp_write_text,
             ssh::sftp::sftp_cancel_transfer,
             ftp::ftp_open,
             ftp::ftp_close,
@@ -102,6 +107,8 @@ macro_rules! handler {
             ftp::ftp_delete,
             ftp::ftp_download,
             ftp::ftp_upload,
+            ftp::ftp_read_text,
+            ftp::ftp_write_text,
             ftp::ftp_cancel_transfer,
             rdp::rdp_connect,
             rdp::rdp_input,

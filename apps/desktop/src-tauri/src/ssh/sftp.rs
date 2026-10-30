@@ -21,6 +21,7 @@ use tauri::{AppHandle, State};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use super::{ClientHandler, Connector, PromptRegistry, SshEvent, Stage, auth};
+use crate::text_file::{self, Encoding, TextFile};
 
 const CHUNK: usize = 256 * 1024;
 const PROGRESS_INTERVAL: Duration = Duration::from_millis(150);
@@ -593,6 +594,72 @@ pub(super) async fn upload(
     }
     progress.flush();
     Ok(())
+}
+
+/// Reads a text file for the editor.
+#[tauri::command]
+pub async fn sftp_read_text(
+    state: State<'_, SftpState>,
+    id: u32,
+    path: String,
+) -> Result<TextFile, String> {
+    let session = state.get(id)?;
+    let metadata = session.sftp.metadata(&path).await.map_err(err)?;
+    if metadata.size.unwrap_or(0) > text_file::MAX_BYTES {
+        return Err(text_file::TOO_LARGE.into());
+    }
+    let mut file = session.sftp.open(&path).await.map_err(err)?;
+    let mut bytes = Vec::new();
+    // One byte past the limit is enough to know it is too big (the size may have been missing).
+    (&mut file)
+        .take(text_file::MAX_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .await
+        .map_err(err)?;
+    let (content, encoding) = text_file::decode(&bytes)?;
+    Ok(TextFile {
+        content,
+        encoding,
+        modified: metadata.mtime.map(u64::from),
+    })
+}
+
+/// Saves the editor's text. With `expected_modified`, refuses if the file changed since it was
+/// read (`changed`); returns the new modification time.
+#[tauri::command]
+pub async fn sftp_write_text(
+    state: State<'_, SftpState>,
+    id: u32,
+    path: String,
+    content: String,
+    encoding: Encoding,
+    expected_modified: Option<u64>,
+) -> Result<Option<u64>, String> {
+    let session = state.get(id)?;
+    let bytes = text_file::encode(&content, encoding)?;
+    if let Some(expected) = expected_modified
+        && let Ok(current) = session.sftp.metadata(&path).await
+        && current.mtime.map(u64::from).is_some_and(|m| m != expected)
+    {
+        return Err(text_file::CHANGED.into());
+    }
+    // Truncating the file keeps its owner and permissions (a new file would not).
+    let mut file = session
+        .sftp
+        .open_with_flags(
+            &path,
+            OpenFlags::CREATE | OpenFlags::TRUNCATE | OpenFlags::WRITE,
+        )
+        .await
+        .map_err(err)?;
+    file.write_all(&bytes).await.map_err(err)?;
+    file.shutdown().await.map_err(err)?;
+    Ok(session
+        .sftp
+        .metadata(&path)
+        .await
+        .ok()
+        .and_then(|m| m.mtime.map(u64::from)))
 }
 
 #[tauri::command]

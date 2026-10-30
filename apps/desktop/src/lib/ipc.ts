@@ -685,3 +685,31 @@ export const shareFiles = (paths: string[]): Promise<void> => invoke("share_file
 
 /** Asks the owner for Face ID, Touch ID or the device password; rejects with "cancelled". */
 export const deviceUnlock = (reason: string): Promise<void> => invoke("device_unlock", { reason });
+
+// File editor
+
+/** How a text file's bytes map to characters; saving writes them back the same way. */
+export type TextEncoding = "utf-8" | "utf-8-bom" | "latin1";
+
+export interface TextFile {
+  content: string;
+  encoding: TextEncoding;
+  /** Seconds since the Unix epoch; `null` when the protocol has none (FTP). */
+  modified: number | null;
+}
+
+/** Errors the editor explains in its own words. */
+export const TEXT_TOO_LARGE = "too-large";
+export const TEXT_BINARY = "binary";
+export const TEXT_CHANGED = "changed";
+
+export const sftpReadText = (id: number, path: string): Promise<TextFile> => invoke("sftp_read_text", { id, path });
+/** Refuses with `changed` if the file's time is no longer `expectedModified`; returns the new time. */
+export const sftpWriteText = (id: number, path: string, content: string, encoding: TextEncoding, expectedModified: number | null): Promise<number | null> =>
+  invoke("sftp_write_text", { id, path, content, encoding, expectedModified });
+export const ftpReadText = (id: number, path: string): Promise<TextFile> => invoke("ftp_read_text", { id, path });
+export const ftpWriteText = (id: number, path: string, content: string, encoding: TextEncoding): Promise<number | null> =>
+  invoke("ftp_write_text", { id, path, content, encoding });
+export const localReadText = (path: string): Promise<TextFile> => invoke("local_read_text", { path });
+export const localWriteText = (path: string, content: string, encoding: TextEncoding, expectedModified: number | null): Promise<number | null> =>
+  invoke("local_write_text", { path, content, encoding, expectedModified });

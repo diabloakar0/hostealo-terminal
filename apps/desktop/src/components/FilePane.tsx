@@ -1,6 +1,6 @@
 import { useEffect, useState, type DragEvent, type MouseEvent, type ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { ArrowUp, Eye, EyeOff, File, FileSymlink, Folder, FolderPlus, FolderSymlink, House, Pencil, RefreshCw, Share, Trash2 } from "lucide-react";
+import { ArrowUp, Eye, EyeOff, File, FilePenLine, FileSymlink, Folder, FolderPlus, FolderSymlink, House, Pencil, RefreshCw, Share, Trash2 } from "lucide-react";
 import { cn } from "@hostealo/ui/cn";
 
 import i18n from "../i18n";
@@ -58,6 +58,8 @@ export interface FilePaneProps {
   onDelete: (entries: SftpEntry[]) => Promise<void>;
   /** Double click on a file. */
   onOpenFile: (entry: SftpEntry) => void;
+  /** Opens a file in the text editor (the footer's button, for one selected file). */
+  onEdit?: (entry: SftpEntry) => void;
   /** Sends the selection to the other side (upload or download). */
   transfer?: { label: string; icon: ReactNode; run: (entries: SftpEntry[]) => void };
   /** The system share sheet for the selection (local files on iPhone and iPad). */
@@ -265,6 +267,11 @@ export function FilePane(props: FilePaneProps) {
             {props.onShare && (
               <Button size="icon" variant="ghost" onClick={() => props.onShare!(selectedEntries)} title={t("files.share")} aria-label={t("files.share")}>
                 <Share className="size-3.5" />
+              </Button>
+            )}
+            {selectedEntries.length === 1 && !selectedEntries[0].isDir && props.onEdit && (
+              <Button size="icon" variant="ghost" onClick={() => props.onEdit!(selectedEntries[0])} title={t("editor.edit")} aria-label={t("editor.edit")}>
+                <FilePenLine className="size-3.5" />
               </Button>
             )}
             {selectedEntries.length === 1 && (

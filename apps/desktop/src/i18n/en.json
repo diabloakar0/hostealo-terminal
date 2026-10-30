@@ -11,6 +11,28 @@
     "done": "Done",
     "clear": "Clear"
   },
+  "editor": {
+    "edit": "Edit",
+    "title": "Editing {{name}}",
+    "loading": "Opening…",
+    "language": "Language",
+    "plainText": "Plain text",
+    "wrap": "Wrap long lines",
+    "saveHint": "Save (Ctrl+S)",
+    "unsaved": "Unsaved changes",
+    "position": "Ln {{line}}, Col {{col}}",
+    "latin1Hint": "Not UTF-8: saved back byte for byte",
+    "binary": "This is not a text file, so it cannot be edited here. Download it instead.",
+    "tooLarge": "This file is bigger than 5 MB, too big to edit here. Download it instead.",
+    "loadFailed": "Could not open the file: {{error}}",
+    "saveFailed": "Could not save: {{error}}",
+    "conflictTitle": "The file changed",
+    "conflictBody": "{{name}} was changed by someone else after you opened it. Saving replaces their changes with yours.",
+    "overwrite": "Save anyway",
+    "discardTitle": "Close without saving?",
+    "discardBody": "Your changes to {{name}} will be lost.",
+    "discard": "Close without saving"
+  },
   "sidebar": {
     "sessions": "Sessions",
     "localTerminal": "Local terminal",
