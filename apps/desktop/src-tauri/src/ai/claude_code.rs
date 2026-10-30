@@ -168,7 +168,11 @@ pub async fn stream_chat(
 ) -> Result<(), String> {
     let claude = find(&settings.base_url).ok_or(NOT_INSTALLED)?;
     let (dir, prompt_file) = prepare_dir(system)?;
-    let mut child = Command::new(&claude)
+    let mut command = Command::new(&claude);
+    // No console window flashing up on Windows for each reply.
+    #[cfg(windows)]
+    command.creation_flags(crate::exec::CREATE_NO_WINDOW);
+    let mut child = command
         .args(args(settings, &dir, &prompt_file))
         .current_dir(&dir)
         .env("PATH", child_path(&claude))

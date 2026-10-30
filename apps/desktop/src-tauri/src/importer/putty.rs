@@ -156,7 +156,9 @@ pub fn parse_dir(dir: &Path) -> Result<Parsed, String> {
 #[cfg(windows)]
 pub fn from_registry() -> Option<Parsed> {
     let file = std::env::temp_dir().join(format!("hostealo-putty-{}.reg", std::process::id()));
+    use std::os::windows::process::CommandExt;
     let status = std::process::Command::new("reg")
+        .creation_flags(crate::exec::CREATE_NO_WINDOW)
         .args(["export", r"HKCU\Software\SimonTatham\PuTTY\Sessions"])
         .arg(&file)
         .arg("/y")

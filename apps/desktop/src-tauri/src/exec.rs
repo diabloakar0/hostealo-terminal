@@ -89,11 +89,18 @@ pub async fn ssh_limited(
     })
 }
 
+/// Windows: console programs the app starts in the background (`cmd`, the AI provider's CLI, `reg`) get no
+/// window of their own; without it each one flashes a console on screen.
+#[cfg(windows)]
+pub const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
 /// Runs `command` on this computer, in the user's home folder.
 pub async fn local(command: &str, timeout: Duration) -> Result<ExecOutput, String> {
     let mut process = if cfg!(windows) {
         let mut process = tokio::process::Command::new("cmd");
         process.args(["/C", command]);
+        #[cfg(windows)]
+        process.creation_flags(CREATE_NO_WINDOW);
         process
     } else {
         let mut process = tokio::process::Command::new("sh");
